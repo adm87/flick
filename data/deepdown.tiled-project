@@ -1,0 +1,26 @@
+{
+    "automappingRulesFile": "",
+    "commands": [
+    ],
+    "compatibilityVersion": 1100,
+    "extensionsPath": "extensions",
+    "folders": [
+        "."
+    ],
+    "properties": [
+    ],
+    "propertyTypes": [
+        {
+            "id": 1,
+            "name": "CollisionRole",
+            "storageType": "int",
+            "type": "enum",
+            "values": [
+                "None",
+                "Wall",
+                "Floor"
+            ],
+            "valuesAsFlags": true
+        }
+    ]
+}

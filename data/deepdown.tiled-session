@@ -1,0 +1,94 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "assets/tilemaps/gym_collision.tmx",
+    "expandedProjectPaths": [
+        "assets/tilesheets",
+        ".",
+        "assets",
+        "assets/tilemaps"
+    ],
+    "fileStates": {
+        "assets/tilemaps/gym_collision.tmx": {
+            "expandedObjectLayers": [
+                2
+            ],
+            "scale": 5.537708333333333,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 119.99548549715963,
+                "y": 76.11451788871751
+            }
+        },
+        "assets/tilemaps/gym_slopes.tmx": {
+            "scale": 6.551041666666666,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 120.05724280489744,
+                "y": 80.0636031165527
+            }
+        },
+        "assets/tilemaps/sample-map-b.tmx": {
+            "scale": 5.537708333333333,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 122.70418720138446,
+                "y": 94.35310936383132
+            }
+        },
+        "assets/tilemaps/sample-map.tmx": {
+            "expandedObjectLayers": [
+                2
+            ],
+            "scale": 4.15328125,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": 159.51243369323953,
+                "y": 95.94823370076371
+            }
+        },
+        "assets/tilemaps/sample-mapB.tmx": {
+            "scale": 153.06875,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 3.014985096566085,
+                "y": 3.8642766730635745
+            }
+        },
+        "assets/tilemaps/sample-sheet.tsx": {
+            "scaleInDock": 1
+        },
+        "assets/tilesheets/sample-map-b.tmx": {
+            "scale": 5.537708333333333,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 119.99548549715963,
+                "y": 80.08728038824725
+            }
+        },
+        "assets/tilesheets/sample-sheet.tsx": {
+            "scaleInDock": 4,
+            "scaleInEditor": 11
+        }
+    },
+    "last.externalTilesetPath": "/home/adm87/Projects/DeepDown/deepdown/data/assets/tilesheets",
+    "map.lastUsedFormat": "tmx",
+    "map.tileHeight": 8,
+    "map.tileWidth": 8,
+    "openFiles": [
+        "assets/tilesheets/sample-sheet.tsx",
+        "assets/tilemaps/gym_collision.tmx"
+    ],
+    "project": "deepdown.tiled-project",
+    "property.type": "CollisionRole",
+    "recentFiles": [
+        "assets/tilesheets/sample-sheet.tsx",
+        "assets/tilemaps/gym_collision.tmx",
+        "assets/tilemaps/sample-map.tmx",
+        "assets/tilemaps/sample-mapB.tmx",
+        "assets/tilemaps/sample-map-b.tmx",
+        "assets/tilesheets/sample-map-b.tmx"
+    ]
+}
