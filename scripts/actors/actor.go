@@ -7,6 +7,18 @@ import (
 )
 
 var (
+	// WorldBoundsActor defines the archetype for the world bounds entity
+	WorldBoundsActor = NewActorType(WorldBounds,
+		components.Transform,
+		components.Rectangle,
+	)
+
+	// CameraActor defines the archetype for the camera entity
+	CameraActor = NewActorType(Camera,
+		components.Transform,
+		components.Rectangle,
+	)
+
 	// DebugActor defines the archetype for the debug entity
 	DebugActor = NewActorType(Debug,
 		components.Debug,
@@ -15,11 +27,6 @@ var (
 	// PlayerActor defines the archetype for the player entity
 	PlayerActor = NewActorType(Player,
 		components.Collider,
-		components.Transform,
-	)
-
-	// CameraActor defines the archetype for the camera entity
-	CameraActor = NewActorType(Camera,
 		components.Transform,
 	)
 

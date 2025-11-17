@@ -6,7 +6,6 @@ import (
 	"github.com/adm87/flick/scripts/actors"
 	"github.com/adm87/flick/scripts/components"
 	"github.com/adm87/flick/scripts/game"
-	"github.com/adm87/flick/scripts/shapes"
 	"github.com/adm87/flick/scripts/systems/camera"
 	"github.com/adm87/flick/scripts/systems/debug"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -23,8 +22,17 @@ func (s *state) registerSystems(g game.Game) {
 	// ============ Late Update Systems ============
 
 	g.AddUpdateSystems(game.LateUpdatePhase,
+
+		// Camera Follow Player
 		func(ctx game.Context) error {
 			return camera.FollowTarget(ctx, actors.Player.MustFirst(ctx.ECS()))
+		},
+
+		// Camera Bounds Check
+		func(ctx game.Context) error {
+			worldBoundsEntry := actors.WorldBounds.MustFirst(ctx.ECS())
+			bounds := components.Rectangle.Get(worldBoundsEntry).Bounds(0, 0)
+			return camera.BoundsCheck(ctx, bounds)
 		},
 	)
 
@@ -49,12 +57,7 @@ func (s *state) registerSystems(g game.Game) {
 			debugEntry := actors.Debug.MustFirst(ctx.ECS())
 			if components.Debug.Get(debugEntry).ShowStaticGrid() {
 				view := components.Transform.Get(actors.Camera.MustFirst(ctx.ECS())).InvMatrix()
-
-				viewport := shapes.NewRectangle().SetSize(ctx.Screen().Width, ctx.Screen().Height)
-				ox, oy := components.Transform.Get(actors.Camera.MustFirst(ctx.ECS())).Origin()
-				x, y := components.Transform.Get(actors.Camera.MustFirst(ctx.ECS())).Position()
-
-				cells := s.world.QueryCells(viewport.Bounds(float32(x-ox), float32(y-oy)))
+				cells := s.world.QueryCells(camera.Viewport(ctx))
 				if err := debug.DrawCollisionGrid(ctx, screen, view, cells, GridCellSize, color.RGBA{R: 255, A: 255}); err != nil {
 					return err
 				}

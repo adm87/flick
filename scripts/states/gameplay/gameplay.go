@@ -2,9 +2,7 @@ package gameplay
 
 import (
 	"github.com/adm87/flick/data"
-	"github.com/adm87/flick/scripts/actors"
 	"github.com/adm87/flick/scripts/assets"
-	"github.com/adm87/flick/scripts/components"
 	"github.com/adm87/flick/scripts/game"
 	"github.com/adm87/flick/scripts/systems/collision"
 )
@@ -39,12 +37,6 @@ func (s *state) Enter(g game.Game) error {
 	if err := s.buildWorld(g); err != nil {
 		return err
 	}
-
-	actors.Spawn(g, actors.DebugActor)
-
-	cameraEntry := actors.Spawn(g, actors.CameraActor)
-	components.Transform.Get(cameraEntry).
-		SetOrigin(g.Screen().Width/2, g.Screen().Height/2)
 
 	return nil
 }

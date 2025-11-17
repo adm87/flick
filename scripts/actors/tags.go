@@ -3,8 +3,9 @@ package actors
 import "github.com/yohamta/donburi"
 
 var (
-	Debug  = donburi.NewTag().SetName("Debug")
-	Camera = donburi.NewTag().SetName("Camera")
-	Player = donburi.NewTag().SetName("Player")
-	Solid  = donburi.NewTag().SetName("Solid")
+	WorldBounds = donburi.NewTag().SetName("WorldBounds")
+	Camera      = donburi.NewTag().SetName("Camera")
+	Debug       = donburi.NewTag().SetName("Debug")
+	Player      = donburi.NewTag().SetName("Player")
+	Solid       = donburi.NewTag().SetName("Solid")
 )

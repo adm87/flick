@@ -26,6 +26,29 @@ func (s *state) buildWorld(ctx game.Context) error {
 		return err
 	}
 
+	actors.Spawn(ctx, actors.DebugActor)
+	actors.Spawn(ctx, actors.WorldBoundsActor)
+
+	cameraEntry := actors.Spawn(ctx, actors.CameraActor)
+
+	halfWidth := float32(ctx.Screen().Width) / 2
+	halfHeight := float32(ctx.Screen().Height) / 2
+
+	// Center camera origin
+	// This will center the world around the camera position
+	components.Transform.Get(cameraEntry).
+		SetOrigin(halfWidth, halfHeight)
+
+	// Set Camera viewport and local position
+	// We need to shift so that the camera's position represents the center of the screen
+	components.Rectangle.Get(cameraEntry).
+		SetSize(ctx.Screen().Width, ctx.Screen().Height).
+		SetPosition(-halfWidth, -halfHeight)
+
+	// Set world bounds size
+	components.Rectangle.Get(actors.WorldBounds.MustFirst(ctx.ECS())).
+		SetSize(float32(tmx.Width*tmx.TileWidth), float32(tmx.Height*tmx.TileHeight))
+
 	return nil
 }
 
@@ -66,13 +89,14 @@ func (s *state) spawnPlayer(ctx game.Context, objects *tiled.ObjectGroup) error 
 
 		center, bottom := obj.Width/2, obj.Height
 
+		components.Transform.Get(player).
+			SetPosition(obj.X, obj.Y).
+			SetOrigin(center, bottom)
+
 		rectangle := shapes.NewRectangle().
 			SetSize(obj.Width, obj.Height).
 			SetPosition(-center, -bottom)
 
-		components.Transform.Get(player).
-			SetPosition(obj.X, obj.Y).
-			SetOrigin(center, bottom)
 		components.Collider.Get(player).
 			SetType(collision.DynamicCollisionType).
 			SetShape(rectangle)
