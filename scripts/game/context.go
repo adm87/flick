@@ -12,7 +12,7 @@ const (
 	TargetWidth  = 1280
 	TargetHeight = 720
 
-	RenderScale = 0.15
+	RenderScale = 1
 )
 
 // Screen represents the game's screen dimensions.
@@ -26,6 +26,7 @@ type Context interface {
 	Context() context.Context
 	ECS() donburi.World
 	Log() *slog.Logger
+	Time() *Time
 	Screen() Screen
 }
 
@@ -67,6 +68,7 @@ type gameContext struct {
 
 	logger *slog.Logger
 	sm     *statemachine
+	time   *Time
 }
 
 func NewGame(ctx context.Context) Game {
@@ -78,6 +80,7 @@ func NewGame(ctx context.Context) Game {
 		logger:        l,
 		world:         w,
 		screen:        s,
+		time:          NewTime(float64(1.0/60.0), 5),
 		updateSystems: make(map[Phase][]UpdateSystem),
 		drawSystems:   make([]DrawSystem, 0),
 		sm:            NewStateMachine(),
@@ -116,6 +119,10 @@ func (g *gameContext) Screen() Screen {
 	return g.screen
 }
 
+func (g *gameContext) Time() *Time {
+	return g.time
+}
+
 func (g *gameContext) OnStart(f func(g Game) error) {
 	g.onStartCallbacks = append(g.onStartCallbacks, f)
 }
@@ -137,12 +144,13 @@ func (g *gameContext) Run() error {
 // ========== Ebiten game interface implementation ==========
 
 func (g *gameContext) Update() error {
+	g.time.tick(1.0 / float64(ebiten.TPS()))
+
 	if err := g.callUpdatePhase(EarlyUpdatePhase, 1); err != nil {
 		return err
 	}
 
-	// TASK: Calculate number of fixed update steps based on elapsed time
-	if err := g.callUpdatePhase(FixedUpdatePhase, 1); err != nil {
+	if err := g.callUpdatePhase(FixedUpdatePhase, g.time.FixedSteps()); err != nil {
 		return err
 	}
 

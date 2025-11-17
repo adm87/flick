@@ -27,6 +27,8 @@ var (
 	// PlayerActor defines the archetype for the player entity
 	PlayerActor = NewActorType(Player,
 		components.Collider,
+		components.Movement,
+		components.Player,
 		components.Transform,
 	)
 

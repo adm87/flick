@@ -6,8 +6,8 @@ import (
 	"github.com/adm87/flick/data"
 	"github.com/adm87/flick/scripts/actors"
 	"github.com/adm87/flick/scripts/assets"
-	"github.com/adm87/flick/scripts/collision"
 	"github.com/adm87/flick/scripts/components"
+	"github.com/adm87/flick/scripts/components/models"
 	"github.com/adm87/flick/scripts/game"
 	"github.com/adm87/flick/scripts/shapes"
 	"github.com/adm87/tiled"
@@ -71,7 +71,7 @@ func (s *state) buildSolidWorld(ctx game.Context, objects *tiled.ObjectGroup) er
 		components.Transform.Get(solid).
 			SetPosition(obj.X, obj.Y)
 		components.Collider.Get(solid).
-			SetType(collision.StaticCollisionType).
+			SetType(models.SolidColliderType).
 			SetShape(shape)
 
 		s.world.Insert(solid.Entity(), shape.Bounds(obj.X, obj.Y))
@@ -98,7 +98,7 @@ func (s *state) spawnPlayer(ctx game.Context, objects *tiled.ObjectGroup) error 
 			SetPosition(-center, -bottom)
 
 		components.Collider.Get(player).
-			SetType(collision.DynamicCollisionType).
+			SetType(models.DynamicColliderType).
 			SetShape(rectangle)
 
 		s.world.Insert(player.Entity(), rectangle.Bounds(obj.X, obj.Y))

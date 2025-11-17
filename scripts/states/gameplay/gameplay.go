@@ -3,8 +3,8 @@ package gameplay
 import (
 	"github.com/adm87/flick/data"
 	"github.com/adm87/flick/scripts/assets"
+	"github.com/adm87/flick/scripts/collision"
 	"github.com/adm87/flick/scripts/game"
-	"github.com/adm87/flick/scripts/systems/collision"
 )
 
 const (

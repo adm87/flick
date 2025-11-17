@@ -8,6 +8,7 @@ import (
 	"github.com/adm87/flick/scripts/game"
 	"github.com/adm87/flick/scripts/systems/camera"
 	"github.com/adm87/flick/scripts/systems/debug"
+	"github.com/adm87/flick/scripts/systems/player"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -17,6 +18,16 @@ func (s *state) registerSystems(g game.Game) {
 
 	g.AddUpdateSystems(game.EarlyUpdatePhase,
 		debug.PollDebugInput,
+	)
+
+	// ============ Fixed Update Systems ============
+
+	g.AddUpdateSystems(game.FixedUpdatePhase,
+
+		// Player Physics
+		func(ctx game.Context) error {
+			return player.UpdatePhysics(ctx, s.world)
+		},
 	)
 
 	// ============ Late Update Systems ============

@@ -7,13 +7,13 @@ import (
 )
 
 func BoundsCheck(ctx game.Context, bounds [4]float32) error {
-	x, y := components.Transform.Get(actors.Camera.MustFirst(ctx.ECS())).
-		Position()
-
-	viewport := Viewport(ctx)
+	cameraEntry := actors.Camera.MustFirst(ctx.ECS())
+	viewport := ViewportOf(cameraEntry)
 
 	halfWidth := (viewport[2] - viewport[0]) / 2
 	halfHeight := (viewport[3] - viewport[1]) / 2
+
+	x, y := components.Transform.Get(cameraEntry).Position()
 
 	if x-halfWidth < bounds[0] {
 		x = bounds[0] + halfWidth
@@ -27,8 +27,6 @@ func BoundsCheck(ctx game.Context, bounds [4]float32) error {
 		y = bounds[3] - halfHeight
 	}
 
-	components.Transform.Get(actors.Camera.MustFirst(ctx.ECS())).
-		SetPosition(x, y)
-
+	components.Transform.Get(cameraEntry).SetPosition(x, y)
 	return nil
 }
