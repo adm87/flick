@@ -1,15 +1,15 @@
 package models
 
+var DefaultDebug = Debug{
+	drawColliders: true,
+	drawPlayer:    true,
+}
+
 type Debug struct {
 	drawColliders     bool
 	drawFPS           bool
 	drawPlayer        bool
 	drawCollisionGrid bool
-}
-
-var DefaultDebug = Debug{
-	drawColliders: true,
-	drawPlayer:    true,
 }
 
 func (d *Debug) ToggleColliders() {

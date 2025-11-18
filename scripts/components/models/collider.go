@@ -52,6 +52,7 @@ type ColliderType uint8
 const (
 	NoColliderType ColliderType = iota
 	SolidColliderType
+	SlopeColliderType
 	DynamicColliderType
 )
 

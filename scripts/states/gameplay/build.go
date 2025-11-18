@@ -56,10 +56,13 @@ func (s *state) buildSolidWorld(ctx game.Context, objects *tiled.ObjectGroup) er
 	for _, obj := range objects.Objects {
 		var shape shapes.Shape
 
+		colliderType := models.SolidColliderType
+
 		if len(obj.Polygon.Points) > 0 {
 			polygon := shapes.NewPolygon()
 			polygon.SetVertices(shapes.GroupVertices(obj.Polygon.Points))
 			shape = polygon
+			colliderType = models.SlopeColliderType
 		} else {
 			rectangle := shapes.NewRectangle()
 			rectangle.SetSize(obj.Width, obj.Height)
@@ -71,7 +74,7 @@ func (s *state) buildSolidWorld(ctx game.Context, objects *tiled.ObjectGroup) er
 		components.Transform.Get(solid).
 			SetPosition(obj.X, obj.Y)
 		components.Collider.Get(solid).
-			SetType(models.SolidColliderType).
+			SetType(colliderType).
 			SetShape(shape)
 
 		s.world.Insert(solid.Entity(), shape.Bounds(obj.X, obj.Y))

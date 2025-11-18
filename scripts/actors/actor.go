@@ -32,6 +32,12 @@ var (
 		components.Transform,
 	)
 
+	// SlopeActor defines the archetype for slope entities
+	SlopeActor = NewActorType(Slope,
+		components.Collider,
+		components.Transform,
+	)
+
 	// SolidActor defines the archetype for solid entities
 	SolidActor = NewActorType(Solid,
 		components.Collider,

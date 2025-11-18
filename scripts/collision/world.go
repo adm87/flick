@@ -41,14 +41,14 @@ func (w *World) Query(region [4]float32) []donburi.Entity {
 
 // Check runs a broad-phase check for the given bounds against any entities within regional grid.
 // It returns a slice of entities that potentially collide with the given bounds based on the collider type and layer.
-func (w *World) Check(ctx game.Context, bounds [4]float32, cType models.ColliderType, layer models.CollisionLayer) []donburi.Entity {
+func (w *World) Check(ctx game.Context, bounds [4]float32, layer models.CollisionLayer, cTypes ...models.ColliderType) []donburi.Entity {
 	var results []donburi.Entity
 
 	for _, entity := range w.grid.Query(bounds) {
 		other := ctx.ECS().Entry(entity)
 
 		collider := components.Collider.Get(other)
-		if collider.Type() != cType {
+		if !containsColliderType(cTypes, collider.Type()) {
 			continue
 		}
 
@@ -65,4 +65,13 @@ func (w *World) Check(ctx game.Context, bounds [4]float32, cType models.Collider
 	}
 
 	return results
+}
+
+func containsColliderType(types []models.ColliderType, cType models.ColliderType) bool {
+	for _, t := range types {
+		if t == cType {
+			return true
+		}
+	}
+	return false
 }
