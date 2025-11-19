@@ -1,6 +1,8 @@
 package player
 
 import (
+	"math"
+
 	"github.com/adm87/flick/scripts/actors"
 	"github.com/adm87/flick/scripts/collision"
 	"github.com/adm87/flick/scripts/components"
@@ -28,9 +30,13 @@ func UpdatePhysics(ctx game.Context, world *collision.World) error {
 	bounds := collider.Shape().Bounds(nx, y)
 	horizontal := world.Check(ctx, bounds, collider.Layer(), models.SolidColliderType)
 
-	if inter, collided := nearestHorizontalCollision(ctx, bounds, horizontal); collided {
+	inter, collided := nearestHit(ctx, bounds, horizontal, func(hitA, hitB collision.Hit) bool {
+		return float32(math.Abs(float64(hitA.Delta[0]))) < float32(math.Abs(float64(hitB.Delta[0])))
+	})
+
+	if collided {
 		vx = 0
-		nx = nx + inter.OverlapX
+		nx = nx + inter.Delta[0]
 	}
 
 	// =========== Vertical Movement and Collision ===========
@@ -43,12 +49,16 @@ func UpdatePhysics(ctx game.Context, world *collision.World) error {
 
 	player.SetOnGround(false)
 
-	if inter, collided := nearestVerticalCollision(ctx, bounds, vertical); collided {
+	inter, collided = nearestHit(ctx, bounds, vertical, func(hitA, hitB collision.Hit) bool {
+		return float32(math.Abs(float64(hitA.Delta[1]))) < float32(math.Abs(float64(hitB.Delta[1])))
+	})
+
+	if collided {
 		if vy > 0 {
 			player.SetOnGround(true)
 		}
 		vy = 0
-		ny = ny + inter.OverlapY
+		ny = ny + inter.Delta[1]
 	}
 
 	// =========== Apply Movement ===========
@@ -64,8 +74,9 @@ func UpdatePhysics(ctx game.Context, world *collision.World) error {
 	return nil
 }
 
-func nearestHorizontalCollision(ctx game.Context, bounds [4]float32, candidates []donburi.Entity) (*collision.Intersection, bool) {
-	var nearest *collision.Intersection
+func nearestHit(ctx game.Context, bounds [4]float32, candidates []donburi.Entity, fn func(hitA, hitB collision.Hit) bool) (collision.Hit, bool) {
+	var nearest collision.Hit
+	var found bool
 
 	for _, entity := range candidates {
 		other := ctx.ECS().Entry(entity)
@@ -74,36 +85,18 @@ func nearestHorizontalCollision(ctx game.Context, bounds [4]float32, candidates 
 		x, y := components.Transform.Get(other).Position()
 
 		if inter, collided := getInterection(ctx, bounds, x, y, shape); collided {
-			if nearest == nil || inter.OverlapX < nearest.OverlapX {
+			if !found || fn(inter, nearest) {
 				nearest = inter
+				found = true
 			}
 		}
 	}
 
-	return nearest, nearest != nil
+	return nearest, found
 }
 
-func nearestVerticalCollision(ctx game.Context, bounds [4]float32, candidates []donburi.Entity) (*collision.Intersection, bool) {
-	var nearest *collision.Intersection
-
-	for _, entity := range candidates {
-		other := ctx.ECS().Entry(entity)
-
-		shape := components.Collider.Get(other).Shape()
-		x, y := components.Transform.Get(other).Position()
-
-		if inter, collided := getInterection(ctx, bounds, x, y, shape); collided {
-			if nearest == nil || inter.OverlapY < nearest.OverlapY {
-				nearest = inter
-			}
-		}
-	}
-
-	return nearest, nearest != nil
-}
-
-func getInterection(ctx game.Context, bounds [4]float32, x, y float32, shape shapes.Shape) (*collision.Intersection, bool) {
-	var intersection *collision.Intersection
+func getInterection(ctx game.Context, bounds [4]float32, x, y float32, shape shapes.Shape) (collision.Hit, bool) {
+	var intersection collision.Hit
 	var collided bool
 
 	switch shape.(type) {
@@ -111,8 +104,8 @@ func getInterection(ctx game.Context, bounds [4]float32, x, y float32, shape sha
 		rect := shape.(*shapes.Rectangle)
 		intersection, collided = collision.AABBvsAABB(bounds, rect.Bounds(x, y))
 	case *shapes.Polygon:
-		// polygon := shape.(*shapes.Polygon)
-		// intersection, collided = collision.AABBvsPolygon(bounds, polygon, x, y)
+		polygon := shape.(*shapes.Polygon)
+		intersection, collided = collision.AABBvsPolygon(bounds, polygon, x, y)
 	default:
 		ctx.Log().Warn("unsupported shape type for collision detection")
 	}
