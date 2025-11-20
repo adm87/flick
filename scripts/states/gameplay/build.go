@@ -22,7 +22,7 @@ func (s *state) buildWorld(ctx game.Context) error {
 	if err := s.buildSolidWorld(ctx, tiled.ObjectGroupByName(tmx, "Collision")); err != nil {
 		return err
 	}
-	if err := s.spawnPlayer(ctx, tiled.ObjectGroupByName(tmx, "Player")); err != nil {
+	if err := s.spawnPlayer(ctx, tmx, tiled.ObjectGroupByName(tmx, "Player")); err != nil {
 		return err
 	}
 
@@ -82,7 +82,7 @@ func (s *state) buildSolidWorld(ctx game.Context, objects *tiled.ObjectGroup) er
 	return nil
 }
 
-func (s *state) spawnPlayer(ctx game.Context, objects *tiled.ObjectGroup) error {
+func (s *state) spawnPlayer(ctx game.Context, tmx *tiled.Tmx, objects *tiled.ObjectGroup) error {
 	if len(objects.Objects) > 1 {
 		return errors.New("ambiguous player spawn: multiple spawn points found")
 	}
@@ -90,21 +90,47 @@ func (s *state) spawnPlayer(ctx game.Context, objects *tiled.ObjectGroup) error 
 	for _, obj := range objects.Objects {
 		player := actors.Spawn(ctx, actors.PlayerActor)
 
-		center, bottom := obj.Width/2, obj.Height
+		w := float32(tmx.TileWidth) * 0.5
+		h := float32(tmx.TileHeight)
+
+		set, gid, _ := tiled.TilesetByGID(tmx, obj.GID)
+		tsx := assets.MustGet[*tiled.Tsx](assets.AssetHandle(set.Source))
+
+		srcX := (int(gid) % int(tsx.Columns)) * int(tsx.TileWidth)
+		srcY := (int(gid) / int(tsx.Columns)) * int(tsx.TileHeight)
+		src := assets.AssetHandle(tsx.Image.Source)
+
+		// center horizontally, align bottom
+		toX := float32(tsx.TileOffset.X) - (float32(tsx.TileWidth)-w)/4
+		toY := float32(tsx.TileOffset.Y) - (float32(tsx.TileHeight) - h)
+
+		components.Tile.Get(player).
+			SetPosition(srcX, srcY).
+			SetSize(int(tsx.TileWidth), int(tsx.TileHeight)).
+			SetOffset(toX, toY).
+			SetGID(gid).
+			SetSource(src)
+
+		alignX, alignY := tiled.ObjectAlignmentAnchor(tsx.ObjectAlignment)
+
+		x, y := obj.X, obj.Y
+
+		orX := alignX * w
+		orY := alignY * h
 
 		components.Transform.Get(player).
-			SetPosition(obj.X, obj.Y).
-			SetOrigin(center, bottom)
+			SetPosition(x, y).
+			SetOrigin(orX, orY)
 
 		rectangle := shapes.NewRectangle().
-			SetSize(obj.Width, obj.Height).
-			SetPosition(-center, -bottom)
+			SetSize(w, h).
+			SetPosition(-orX, -orY)
 
 		components.Collider.Get(player).
 			SetType(models.DynamicColliderType).
 			SetShape(rectangle)
 
-		s.world.Insert(player.Entity(), rectangle.Bounds(obj.X, obj.Y))
+		s.world.Insert(player.Entity(), rectangle.Bounds(x, y))
 		return nil
 	}
 

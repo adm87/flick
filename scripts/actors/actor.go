@@ -29,6 +29,7 @@ var (
 		components.Collider,
 		components.Movement,
 		components.Player,
+		components.Tile,
 		components.Transform,
 	)
 

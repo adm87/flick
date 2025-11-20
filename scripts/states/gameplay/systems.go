@@ -1,15 +1,18 @@
 package gameplay
 
 import (
+	"image"
 	"image/color"
 
 	"github.com/adm87/flick/scripts/actors"
+	"github.com/adm87/flick/scripts/assets"
 	"github.com/adm87/flick/scripts/components"
 	"github.com/adm87/flick/scripts/game"
 	"github.com/adm87/flick/scripts/systems/camera"
 	"github.com/adm87/flick/scripts/systems/debug"
 	"github.com/adm87/flick/scripts/systems/player"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/yohamta/donburi"
 )
 
 func (s *state) registerSystems(g game.Game) {
@@ -25,7 +28,7 @@ func (s *state) registerSystems(g game.Game) {
 
 	g.AddUpdateSystems(game.FixedUpdatePhase,
 
-		// Player Physics
+		// Update Player Physics
 		func(ctx game.Context) error {
 			return player.UpdatePhysics(ctx, s.world)
 		},
@@ -40,12 +43,12 @@ func (s *state) registerSystems(g game.Game) {
 			return camera.FollowTarget(ctx, actors.Player.MustFirst(ctx.ECS()))
 		},
 
-		// Camera Bounds Check
-		func(ctx game.Context) error {
-			worldBoundsEntry := actors.WorldBounds.MustFirst(ctx.ECS())
-			bounds := components.Rectangle.Get(worldBoundsEntry).Bounds(0, 0)
-			return camera.BoundsCheck(ctx, bounds)
-		},
+		// // Camera Bounds Check
+		// func(ctx game.Context) error {
+		// 	worldBoundsEntry := actors.WorldBounds.MustFirst(ctx.ECS())
+		// 	bounds := components.Rectangle.Get(worldBoundsEntry).Bounds(0, 0)
+		// 	return camera.BoundsCheck(ctx, bounds)
+		// },
 	)
 
 	// ============ Draw Systems ============
@@ -53,6 +56,28 @@ func (s *state) registerSystems(g game.Game) {
 	g.AddDrawSystems(
 
 		func(ctx game.Context, screen *ebiten.Image) error {
+			debugEntry := actors.Debug.MustFirst(ctx.ECS())
+			if components.Debug.Get(debugEntry).ShowTiles() {
+				view := components.Transform.Get(actors.Camera.MustFirst(ctx.ECS())).InvMatrix()
+				components.Tile.Each(ctx.ECS(), func(e *donburi.Entry) {
+					tile := components.Tile.Get(e)
+					transform := components.Transform.Get(e)
+					source := assets.MustGet[*ebiten.Image](tile.Source())
+
+					x, y := tile.Position()
+					w, h := tile.Size()
+					ax, ay := tile.Offset()
+
+					matrix := transform.Matrix()
+
+					matrix.Translate(float64(ax), float64(ay))
+					matrix.Concat(view)
+
+					screen.DrawImage(source.SubImage(image.Rect(x, y, x+w, y+h)).(*ebiten.Image), &ebiten.DrawImageOptions{
+						GeoM: matrix,
+					})
+				})
+			}
 			return nil
 		},
 

@@ -60,10 +60,11 @@ func DrawEntityColliders(ctx game.Context, screen *ebiten.Image, view ebiten.Geo
 		shape := components.Collider.Get(e).Shape()
 		switch shape.(type) {
 		case *shapes.Rectangle:
-			bounds := shape.Bounds(0, 0)
+			rect := shape.(*shapes.Rectangle)
+			// rX, rY := rect.Position()
 
 			x, y := matrix.Apply(0, 0)
-			w, h := bounds[2]-bounds[0], bounds[3]-bounds[1]
+			w, h := rect.Size()
 
 			if err := DrawRect(ctx, screen, [2]float32{float32(x), float32(y)}, [2]float32{w, h}, col); err != nil {
 				return err

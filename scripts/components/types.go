@@ -12,5 +12,6 @@ var (
 	Rectangle = donburi.NewComponentType[shapes.Rectangle](*shapes.NewRectangle())
 	Movement  = donburi.NewComponentType[models.Movement](models.DefaultMovement)
 	Player    = donburi.NewComponentType[models.Player](models.DefaultPlayer)
+	Tile      = donburi.NewComponentType[models.Tile](models.DefaultTile)
 	Transform = donburi.NewComponentType[models.Transform](models.DefaultTransform)
 )
