@@ -12,7 +12,7 @@ const (
 	TargetWidth  = 1280
 	TargetHeight = 720
 
-	RenderScale = 0.15
+	RenderScale = 0.3
 )
 
 // Screen represents the game's screen dimensions.

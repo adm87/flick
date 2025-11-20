@@ -30,7 +30,7 @@ func UpdatePhysics(ctx game.Context, world *collision.World) error {
 	bounds := collider.Shape().Bounds(nx, y)
 	horizontal := world.Check(ctx, bounds, collider.Layer(), models.SolidColliderType)
 
-	inter, collided := nearestHit(ctx, bounds, horizontal, func(hitA, hitB collision.Hit) bool {
+	inter, collided := nearestHit(ctx, playerEntry.Entity(), bounds, horizontal, func(hitA, hitB collision.Hit) bool {
 		return float32(math.Abs(float64(hitA.Delta[0]))) < float32(math.Abs(float64(hitB.Delta[0])))
 	})
 
@@ -49,7 +49,7 @@ func UpdatePhysics(ctx game.Context, world *collision.World) error {
 
 	player.SetOnGround(false)
 
-	inter, collided = nearestHit(ctx, bounds, vertical, func(hitA, hitB collision.Hit) bool {
+	inter, collided = nearestHit(ctx, playerEntry.Entity(), bounds, vertical, func(hitA, hitB collision.Hit) bool {
 		return float32(math.Abs(float64(hitA.Delta[1]))) < float32(math.Abs(float64(hitB.Delta[1])))
 	})
 
@@ -74,11 +74,15 @@ func UpdatePhysics(ctx game.Context, world *collision.World) error {
 	return nil
 }
 
-func nearestHit(ctx game.Context, bounds [4]float32, candidates []donburi.Entity, fn func(hitA, hitB collision.Hit) bool) (collision.Hit, bool) {
+func nearestHit(ctx game.Context, self donburi.Entity, bounds [4]float32, candidates []donburi.Entity, fn func(hitA, hitB collision.Hit) bool) (collision.Hit, bool) {
 	var nearest collision.Hit
 	var found bool
 
 	for _, entity := range candidates {
+		if entity == self {
+			continue
+		}
+
 		other := ctx.ECS().Entry(entity)
 
 		shape := components.Collider.Get(other).Shape()

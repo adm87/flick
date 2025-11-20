@@ -14,12 +14,12 @@ import (
 )
 
 func (s *state) buildWorld(ctx game.Context) error {
-	tmx, err := assets.Get[*tiled.Tmx](data.GymCollision)
+	tmx, err := assets.Get[*tiled.Tmx](data.TilemapExampleA)
 	if err != nil {
 		return err
 	}
 
-	if err := s.buildSolidWorld(ctx, tiled.ObjectGroupByName(tmx, "Solid")); err != nil {
+	if err := s.buildSolidWorld(ctx, tiled.ObjectGroupByName(tmx, "Collision")); err != nil {
 		return err
 	}
 	if err := s.spawnPlayer(ctx, tiled.ObjectGroupByName(tmx, "Player")); err != nil {

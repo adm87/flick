@@ -52,6 +52,10 @@ func (s *state) registerSystems(g game.Game) {
 
 	g.AddDrawSystems(
 
+		func(ctx game.Context, screen *ebiten.Image) error {
+			return nil
+		},
+
 		// Debug Colliders
 		func(ctx game.Context, screen *ebiten.Image) error {
 			debugEntry := actors.Debug.MustFirst(ctx.ECS())

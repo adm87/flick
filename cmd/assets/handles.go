@@ -15,7 +15,7 @@ import (
 const handlesGoTemplate = `// Code generated. DO NOT EDIT.
 package data
 
-import "game/scripts/assets"
+import "github.com/adm87/flick/scripts/assets"
 
 // This file registers all asset paths to their respective handles.
 

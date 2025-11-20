@@ -5,10 +5,10 @@
     },
     "activeFile": "assets/tilemaps/gym_collision.tmx",
     "expandedProjectPaths": [
-        "assets/tilesheets",
         "assets/tilemaps",
+        ".",
         "assets",
-        "."
+        "assets/tilesheets"
     ],
     "fileStates": {
         "assets/tilemaps/gym_collision.tmx": {
@@ -18,8 +18,8 @@
             "scale": 5.537708333333333,
             "selectedLayer": 2,
             "viewCenter": {
-                "x": 120.08577555396714,
-                "y": 80.08728038824725
+                "x": 119.99548549715963,
+                "y": 76.11451788871751
             }
         },
         "assets/tilemaps/gym_slopes.tmx": {
@@ -60,6 +60,12 @@
         "assets/tilemaps/sample-sheet.tsx": {
             "scaleInDock": 1
         },
+        "assets/tilemaps/tileset-characters.tsx": {
+            "scaleInDock": 1
+        },
+        "assets/tilemaps/tileset-tiles.tsx": {
+            "scaleInDock": 1
+        },
         "assets/tilesheets/sample-map-b.tmx": {
             "scale": 5.537708333333333,
             "selectedLayer": 0,
@@ -71,9 +77,16 @@
         "assets/tilesheets/sample-sheet.tsx": {
             "scaleInDock": 4,
             "scaleInEditor": 11
+        },
+        "assets/tilesheets/tileset-characters.tsx": {
+            "scaleInEditor": 1
+        },
+        "assets/tilesheets/tileset-tiles.tsx": {
+            "scaleInEditor": 1
         }
     },
-    "last.externalTilesetPath": "/home/adm87/Projects/DeepDown/deepdown/data/assets/tilesheets",
+    "last.externalTilesetPath": "/home/adm87/Projects/Flick/flick/data/assets/tilesheets",
+    "last.imagePath": "/home/adm87/Projects/Flick/flick/data/assets/images",
     "map.lastUsedFormat": "tmx",
     "map.tileHeight": 8,
     "map.tileWidth": 8,
@@ -84,6 +97,8 @@
     "project": "deepdown.tiled-project",
     "property.type": "CollisionRole",
     "recentFiles": [
+        "assets/tilesheets/tileset-tiles.tsx",
+        "assets/tilesheets/tileset-characters.tsx",
         "assets/tilesheets/sample-sheet.tsx",
         "assets/tilemaps/gym_collision.tmx",
         "assets/tilemaps/sample-map.tmx",

@@ -8,12 +8,14 @@ import (
 )
 
 const (
-	GridCellSize = 8
+	GridCellSize = 18
 )
 
 var assetBundle = []assets.AssetHandle{
-	data.GymCollision,
-	data.SampleSheet,
+	data.TilemapExampleA,
+	data.TilemapCharactersPacked,
+	data.TilesetCharacters,
+	data.TilesetTiles,
 	data.TilemapPacked,
 }
 
