@@ -11,6 +11,7 @@ import (
 	"github.com/adm87/flick/scripts/systems/camera"
 	"github.com/adm87/flick/scripts/systems/debug"
 	"github.com/adm87/flick/scripts/systems/player"
+	"github.com/adm87/flick/scripts/systems/tilemap"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/yohamta/donburi"
 )
@@ -40,21 +41,35 @@ func (s *state) registerSystems(g game.Game) {
 
 		// Camera Follow Player
 		func(ctx game.Context) error {
-			return camera.FollowTarget(ctx, actors.Player.MustFirst(ctx.ECS()))
+			if err := camera.FollowTarget(ctx, actors.Player.MustFirst(ctx.ECS())); err != nil {
+				return err
+			}
+
+			s.tilemap.Frame().Set(camera.Viewport(ctx))
+			return nil
 		},
 
-		// // Camera Bounds Check
-		// func(ctx game.Context) error {
-		// 	worldBoundsEntry := actors.WorldBounds.MustFirst(ctx.ECS())
-		// 	bounds := components.Rectangle.Get(worldBoundsEntry).Bounds(0, 0)
-		// 	return camera.BoundsCheck(ctx, bounds)
-		// },
+		// Camera Bounds Check
+		func(ctx game.Context) error {
+			worldBoundsEntry := actors.WorldBounds.MustFirst(ctx.ECS())
+			bounds := components.Rectangle.Get(worldBoundsEntry).Bounds(0, 0)
+			return camera.BoundsCheck(ctx, bounds)
+		},
 	)
 
 	// ============ Draw Systems ============
 
 	g.AddDrawSystems(
 
+		// Tilemap Renderer
+		func(ctx game.Context, screen *ebiten.Image) error {
+			// No entity, just a render system for the tiled package
+			viewport := camera.Viewport(ctx)
+			view := components.Transform.Get(actors.Camera.MustFirst(ctx.ECS())).InvMatrix()
+			return tilemap.RenderTilemap(ctx, screen, s.tilemap, view, viewport)
+		},
+
+		// Tiled Object Renderer
 		func(ctx game.Context, screen *ebiten.Image) error {
 			debugEntry := actors.Debug.MustFirst(ctx.ECS())
 			if components.Debug.Get(debugEntry).ShowTiles() {

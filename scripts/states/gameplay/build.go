@@ -3,7 +3,6 @@ package gameplay
 import (
 	"errors"
 
-	"github.com/adm87/flick/data"
 	"github.com/adm87/flick/scripts/actors"
 	"github.com/adm87/flick/scripts/assets"
 	"github.com/adm87/flick/scripts/components"
@@ -14,17 +13,14 @@ import (
 )
 
 func (s *state) buildWorld(ctx game.Context) error {
-	tmx, err := assets.Get[*tiled.Tmx](data.TilemapExampleA)
-	if err != nil {
+	if err := s.buildSolidWorld(ctx, tiled.ObjectGroupByName(s.tilemap.Tmx, "Collision")); err != nil {
+		return err
+	}
+	if err := s.spawnPlayer(ctx, s.tilemap.Tmx, tiled.ObjectGroupByName(s.tilemap.Tmx, "Player")); err != nil {
 		return err
 	}
 
-	if err := s.buildSolidWorld(ctx, tiled.ObjectGroupByName(tmx, "Collision")); err != nil {
-		return err
-	}
-	if err := s.spawnPlayer(ctx, tmx, tiled.ObjectGroupByName(tmx, "Player")); err != nil {
-		return err
-	}
+	w, h := s.tilemap.Tmx.Width*s.tilemap.Tmx.TileWidth, s.tilemap.Tmx.Height*s.tilemap.Tmx.TileHeight
 
 	actors.Spawn(ctx, actors.DebugActor)
 	actors.Spawn(ctx, actors.WorldBoundsActor)
@@ -47,7 +43,7 @@ func (s *state) buildWorld(ctx game.Context) error {
 
 	// Set world bounds size
 	components.Rectangle.Get(actors.WorldBounds.MustFirst(ctx.ECS())).
-		SetSize(float32(tmx.Width*tmx.TileWidth), float32(tmx.Height*tmx.TileHeight))
+		SetSize(float32(w), float32(h))
 
 	return nil
 }
@@ -90,12 +86,14 @@ func (s *state) spawnPlayer(ctx game.Context, tmx *tiled.Tmx, objects *tiled.Obj
 	for _, obj := range objects.Objects {
 		player := actors.Spawn(ctx, actors.PlayerActor)
 
+		// Physical size of the player
 		w := float32(tmx.TileWidth) * 0.5
 		h := float32(tmx.TileHeight)
 
 		set, gid, _ := tiled.TilesetByGID(tmx, obj.GID)
 		tsx := assets.MustGet[*tiled.Tsx](assets.AssetHandle(set.Source))
 
+		// Tile source position
 		srcX := (int(gid) % int(tsx.Columns)) * int(tsx.TileWidth)
 		srcY := (int(gid) / int(tsx.Columns)) * int(tsx.TileHeight)
 		src := assets.AssetHandle(tsx.Image.Source)
