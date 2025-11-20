@@ -1,17 +1,15 @@
 package gameplay
 
 import (
-	"image"
 	"image/color"
 
 	"github.com/adm87/flick/scripts/actors"
-	"github.com/adm87/flick/scripts/assets"
 	"github.com/adm87/flick/scripts/components"
 	"github.com/adm87/flick/scripts/game"
 	"github.com/adm87/flick/scripts/systems/camera"
 	"github.com/adm87/flick/scripts/systems/debug"
 	"github.com/adm87/flick/scripts/systems/player"
-	"github.com/adm87/flick/scripts/systems/tilemap"
+	"github.com/adm87/flick/scripts/systems/tiled"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/yohamta/donburi"
 )
@@ -66,7 +64,7 @@ func (s *state) registerSystems(g game.Game) {
 			// No entity, just a render system for the tiled package
 			viewport := camera.Viewport(ctx)
 			view := components.Transform.Get(actors.Camera.MustFirst(ctx.ECS())).InvMatrix()
-			return tilemap.RenderTilemap(ctx, screen, s.tilemap, view, viewport)
+			return tiled.RenderTilemap(ctx, screen, s.tilemap, view, viewport)
 		},
 
 		// Tiled Object Renderer
@@ -76,21 +74,10 @@ func (s *state) registerSystems(g game.Game) {
 				view := components.Transform.Get(actors.Camera.MustFirst(ctx.ECS())).InvMatrix()
 				components.Tile.Each(ctx.ECS(), func(e *donburi.Entry) {
 					tile := components.Tile.Get(e)
-					transform := components.Transform.Get(e)
-					source := assets.MustGet[*ebiten.Image](tile.Source())
-
-					x, y := tile.Position()
-					w, h := tile.Size()
-					ax, ay := tile.Offset()
-
-					matrix := transform.Matrix()
-
-					matrix.Translate(float64(ax), float64(ay))
-					matrix.Concat(view)
-
-					screen.DrawImage(source.SubImage(image.Rect(x, y, x+w, y+h)).(*ebiten.Image), &ebiten.DrawImageOptions{
-						GeoM: matrix,
-					})
+					matrix := components.Transform.Get(e).Matrix()
+					if err := tiled.RenderObject(ctx, screen, tile, view, matrix); err != nil {
+						ctx.Log().Error("failed to render tile object", "error", err)
+					}
 				})
 			}
 			return nil
