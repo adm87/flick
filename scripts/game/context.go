@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/adm87/flick/scripts/input"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/yohamta/donburi"
 )
@@ -31,6 +32,7 @@ type Context interface {
 	Log() *slog.Logger
 	Time() *Time
 	Screen() Screen
+	Input() input.Mapping
 }
 
 // Game represents the main game interface, extending Context with game-specific methods.
@@ -72,6 +74,7 @@ type gameContext struct {
 	logger *slog.Logger
 	sm     *statemachine
 	time   *Time
+	input  input.Mapping
 }
 
 func NewGame(ctx context.Context) Game {
@@ -92,6 +95,7 @@ func NewGame(ctx context.Context) Game {
 		updateSystems: make(map[Phase][]UpdateSystem),
 		drawSystems:   make([]DrawSystem, 0),
 		sm:            NewStateMachine(),
+		input:         input.NewMapping(),
 	}
 }
 
@@ -131,6 +135,10 @@ func (g *gameContext) Time() *Time {
 	return g.time
 }
 
+func (g *gameContext) Input() input.Mapping {
+	return g.input
+}
+
 func (g *gameContext) OnStart(f func(g Game) error) {
 	g.onStartCallbacks = append(g.onStartCallbacks, f)
 }
@@ -153,6 +161,8 @@ func (g *gameContext) Run() error {
 
 func (g *gameContext) Update() error {
 	g.time.tick(1.0 / float64(ebiten.TPS()))
+
+	g.input.Update(g.time.deltaTime)
 
 	if err := g.callUpdatePhase(EarlyUpdatePhase, 1); err != nil {
 		return err

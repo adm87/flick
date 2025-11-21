@@ -20,7 +20,7 @@ func (s *state) registerSystems(g game.Game) {
 
 	g.AddUpdateSystems(game.EarlyUpdatePhase,
 		debug.PollDebugInput,
-		player.PollPlayerInput,
+		player.UpdatePlayerInput,
 	)
 
 	// ============ Fixed Update Systems ============

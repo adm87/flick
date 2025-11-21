@@ -5,10 +5,10 @@
     },
     "activeFile": "assets/tilemaps/tilemap-example-a.tmx",
     "expandedProjectPaths": [
-        "assets/tilesheets",
         "assets",
+        ".",
         "assets/tilemaps",
-        "."
+        "assets/tilesheets"
     ],
     "fileStates": {
         "assets/tilemaps/gym_collision.tmx": {

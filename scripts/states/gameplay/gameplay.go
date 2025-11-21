@@ -34,8 +34,6 @@ func NewState() game.State {
 }
 
 func (s *state) Enter(g game.Game) error {
-	s.registerSystems(g)
-
 	if err := assets.Load(assetBundle...); err != nil {
 		return err
 	}
@@ -46,11 +44,17 @@ func (s *state) Enter(g game.Game) error {
 		return err
 	}
 
+	s.registerInput(g)
+	s.registerSystems(g)
+
 	return nil
 }
 
 func (s *state) Exit(g game.Game) error {
 	s.tilemap.Flush()
+
+	g.Input().RemoveAllBindings()
+
 	g.ClearSystems()
 
 	// TASK: Unload assets when exiting the state
