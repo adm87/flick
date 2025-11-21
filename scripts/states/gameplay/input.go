@@ -22,7 +22,7 @@ func (s *state) registerInput(g game.Game) {
 	))
 
 	// Bind Jump Action
-	g.Input().Bind(input.NewSimplePressBinding(
+	g.Input().Bind(input.NewButtonBinding(
 		[]input.Listener{
 			input.NewKey(ebiten.KeyW),
 			input.NewKey(ebiten.KeyUp),

@@ -7,39 +7,52 @@ type Action string
 // Implement custom bindings for different input behaviours such as delayed activation,
 // toggles, or combinations of inputs.
 type Binding interface {
-	Listeners() []Listener
-	Update(dt float64)
-	IsActive() bool
-	Action() Action
-	Value() float32
+	Listeners() []Listener // Get all listeners associated with the binding
+	Update(dt float64)     // Update the binding state
+	IsActive() bool        // Check if the binding is currently active
+	JustActive() bool      // Check if the binding was just activated
+	JustInactive() bool    // Check if the binding was just deactivated
+	Action() Action        // Get the action associated with the binding
+	Value() float32        // Get the value of the binding (useful for axis bindings)
 }
 
-// ========== Simple Press Binding ===========
+// ========== Button Bindings ===========
 
-// SimplePressBinding activates when any of its listeners detect an action (e.g., a key press).
-type SimplePressBinding struct {
+// ButtonBinding represents a binding for a button input (e.g., jump, shoot).
+type ButtonBinding struct {
 	listeners []Listener
 	action    Action
 }
 
-func NewSimplePressBinding(listeners []Listener, action Action) *SimplePressBinding {
-	return &SimplePressBinding{
+func NewButtonBinding(listeners []Listener, action Action) *ButtonBinding {
+	return &ButtonBinding{
 		listeners: listeners,
 		action:    action,
 	}
 }
 
-func (b *SimplePressBinding) Listeners() []Listener {
+func (b *ButtonBinding) Listeners() []Listener {
 	return b.listeners
 }
 
-func (b *SimplePressBinding) Update(dt float64) {
+func (b *ButtonBinding) Update(dt float64) {
 	for _, listener := range b.listeners {
 		listener.Update()
 	}
 }
 
-func (b *SimplePressBinding) IsActive() bool {
+func (b *ButtonBinding) Action() Action {
+	return b.action
+}
+
+func (b *ButtonBinding) Value() float32 {
+	if b.IsActive() {
+		return 1.0
+	}
+	return 0.0
+}
+
+func (b *ButtonBinding) IsActive() bool {
 	for _, listener := range b.listeners {
 		if listener.IsActive() {
 			return true
@@ -48,15 +61,22 @@ func (b *SimplePressBinding) IsActive() bool {
 	return false
 }
 
-func (b *SimplePressBinding) Action() Action {
-	return b.action
+func (b *ButtonBinding) JustActive() bool {
+	for _, listener := range b.listeners {
+		if listener.JustActive() {
+			return true
+		}
+	}
+	return false
 }
 
-func (b *SimplePressBinding) Value() float32 {
-	if b.IsActive() {
-		return 1.0
+func (b *ButtonBinding) JustInactive() bool {
+	for _, listener := range b.listeners {
+		if listener.JustInactive() {
+			return true
+		}
 	}
-	return 0.0
+	return false
 }
 
 // ========== Axis Binding ===========
@@ -92,19 +112,59 @@ func (b *AxisBinding) IsActive() bool {
 	return b.Value() != 0
 }
 
+func (b *AxisBinding) JustActive() bool {
+	var positiveActive bool
+	var negativeActive bool
+
+	for _, listener := range b.positiveListeners {
+		if listener.JustActive() {
+			positiveActive = true
+			break
+		}
+	}
+	for _, listener := range b.negativeListeners {
+		if listener.JustActive() {
+			negativeActive = true
+			break
+		}
+	}
+
+	return positiveActive || negativeActive
+}
+
+func (b *AxisBinding) JustInactive() bool {
+	var positiveInactive bool
+	var negativeInactive bool
+
+	for _, listener := range b.positiveListeners {
+		if listener.JustInactive() {
+			positiveInactive = true
+			break
+		}
+	}
+	for _, listener := range b.negativeListeners {
+		if listener.JustInactive() {
+			negativeInactive = true
+			break
+		}
+	}
+
+	return positiveInactive || negativeInactive
+}
+
 func (b *AxisBinding) Value() float32 {
 	var positive float32
 	var negative float32
 
 	for _, listener := range b.positiveListeners {
 		if listener.IsActive() {
-			positive += listener.Value()
+			positive = listener.Value()
 			break
 		}
 	}
 	for _, listener := range b.negativeListeners {
 		if listener.IsActive() {
-			negative += listener.Value()
+			negative = listener.Value()
 			break
 		}
 	}

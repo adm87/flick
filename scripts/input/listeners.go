@@ -4,12 +4,14 @@ import "github.com/hajimehoshi/ebiten/v2"
 
 // A listener manages listening for when devices input occurs.
 type Listener interface {
-	Update()
-
-	IsActive() bool
-
-	Value() float32
+	Update()            // Update the listener state
+	IsActive() bool     // Check if the listener is currently active
+	JustActive() bool   // Check if the listener was just activated
+	JustInactive() bool // Check if the listener was just deactivated
+	Value() float32     // Get the value of the listener (useful for analog inputs)
 }
+
+// ========== Key Listener ===========
 
 // Key represents a keyboard key listener.
 type Key struct {
@@ -35,11 +37,11 @@ func (k *Key) IsActive() bool {
 	return k.active
 }
 
-func (k *Key) JustPressed() bool {
+func (k *Key) JustActive() bool {
 	return k.active && !k.wasActive
 }
 
-func (k *Key) JustReleased() bool {
+func (k *Key) JustInactive() bool {
 	return !k.active && k.wasActive
 }
 

@@ -28,10 +28,8 @@ func UpdatePlayerInput(ctx game.Context) error {
 	}
 
 	// Handle Jump Input
-	if player.OnGround() {
-		if jump := ctx.Input().GetBinding(Jump); jump != nil && jump.IsActive() {
-			vy = -playerJumpStrength
-		}
+	if jump := ctx.Input().GetBinding(Jump); jump != nil && jump.JustActive() && player.OnGround() {
+		vy = -playerJumpStrength
 	}
 
 	movement.SetVelocity(vx, vy)
