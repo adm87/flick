@@ -22,7 +22,6 @@ func RenderTilemap(ctx game.Context, screen *ebiten.Image, tmap *tilemap.Map, vi
 			drawTile(ctx, screen, tmap, &tile, view)
 		}
 	}
-
 	return nil
 }
 

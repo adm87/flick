@@ -26,6 +26,9 @@ func PollDebugInput(ctx game.Context) error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyF6) {
 		debugModel.ToggleTiles()
 	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyF7) {
+		debugModel.ToggleTilemap()
+	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyF10) {
 		debugModel.ToggleCollisionGrid()
 	}

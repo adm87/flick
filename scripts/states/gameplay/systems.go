@@ -42,8 +42,6 @@ func (s *state) registerSystems(g game.Game) {
 			if err := camera.FollowTarget(ctx, actors.Player.MustFirst(ctx.ECS())); err != nil {
 				return err
 			}
-
-			s.tilemap.Frame().Set(camera.Viewport(ctx))
 			return nil
 		},
 
@@ -57,14 +55,28 @@ func (s *state) registerSystems(g game.Game) {
 
 	// ============ Draw Systems ============
 
+	buffer := ebiten.NewImage(int(g.Screen().Width), int(g.Screen().Height))
+
 	g.AddDrawSystems(
+
+		// Pre Render, draw to buffer
+		func(ctx game.Context, screen *ebiten.Image) error {
+			buffer.Clear()
+			return nil
+		},
 
 		// Tilemap Renderer
 		func(ctx game.Context, screen *ebiten.Image) error {
-			// No entity, just a render system for the tiled package
-			viewport := camera.Viewport(ctx)
-			view := components.Transform.Get(actors.Camera.MustFirst(ctx.ECS())).InvMatrix()
-			return tiled.RenderTilemap(ctx, screen, s.tilemap, view, viewport)
+			debugEntry := actors.Debug.MustFirst(ctx.ECS())
+			if components.Debug.Get(debugEntry).ShowTilemap() {
+				// No entity, just a render system for the tiled package
+				viewport := camera.Viewport(ctx)
+				view := components.Transform.Get(actors.Camera.MustFirst(ctx.ECS())).InvMatrix()
+
+				s.tilemap.Frame().Set(viewport)
+				return tiled.RenderTilemap(ctx, buffer, s.tilemap, view, viewport)
+			}
+			return nil
 		},
 
 		// Tiled Object Renderer
@@ -75,7 +87,7 @@ func (s *state) registerSystems(g game.Game) {
 				components.Tile.Each(ctx.ECS(), func(e *donburi.Entry) {
 					tile := components.Tile.Get(e)
 					matrix := components.Transform.Get(e).Matrix()
-					if err := tiled.RenderObject(ctx, screen, tile, view, matrix); err != nil {
+					if err := tiled.RenderObject(ctx, buffer, tile, view, matrix); err != nil {
 						ctx.Log().Error("failed to render tile object", "error", err)
 					}
 				})
@@ -88,7 +100,7 @@ func (s *state) registerSystems(g game.Game) {
 			debugEntry := actors.Debug.MustFirst(ctx.ECS())
 			if components.Debug.Get(debugEntry).ShowColliders() {
 				view := components.Transform.Get(actors.Camera.MustFirst(ctx.ECS())).InvMatrix()
-				if err := debug.DrawEntityColliders(ctx, screen, view, actors.Solid.Iter(ctx.ECS()), color.RGBA{B: 255, A: 255}); err != nil {
+				if err := debug.DrawEntityColliders(ctx, buffer, view, actors.Solid.Iter(ctx.ECS()), color.RGBA{B: 255, A: 255}); err != nil {
 					return err
 				}
 			}
@@ -101,7 +113,7 @@ func (s *state) registerSystems(g game.Game) {
 			if components.Debug.Get(debugEntry).ShowStaticGrid() {
 				view := components.Transform.Get(actors.Camera.MustFirst(ctx.ECS())).InvMatrix()
 				cells := s.world.QueryCells(camera.Viewport(ctx))
-				if err := debug.DrawCollisionGrid(ctx, screen, view, cells, GridCellSize, color.RGBA{R: 255, A: 255}); err != nil {
+				if err := debug.DrawCollisionGrid(ctx, buffer, view, cells, GridCellSize, color.RGBA{R: 255, A: 255}); err != nil {
 					return err
 				}
 			}
@@ -113,10 +125,20 @@ func (s *state) registerSystems(g game.Game) {
 			debugEntry := actors.Debug.MustFirst(ctx.ECS())
 			if components.Debug.Get(debugEntry).ShowPlayer() {
 				view := components.Transform.Get(actors.Camera.MustFirst(ctx.ECS())).InvMatrix()
-				if err := debug.DrawEntityColliders(ctx, screen, view, actors.Player.Iter(ctx.ECS()), color.RGBA{G: 255, A: 255}); err != nil {
+				if err := debug.DrawEntityColliders(ctx, buffer, view, actors.Player.Iter(ctx.ECS()), color.RGBA{G: 255, A: 255}); err != nil {
 					return err
 				}
 			}
+			return nil
+		},
+
+		// Post Render, blit to screen
+		func(ctx game.Context, screen *ebiten.Image) error {
+			opts := &ebiten.DrawImageOptions{
+				Filter: ebiten.FilterNearest,
+			}
+			opts.GeoM.Scale(1/game.RenderScale, 1/game.RenderScale)
+			screen.DrawImage(buffer, opts)
 			return nil
 		},
 

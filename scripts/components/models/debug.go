@@ -1,9 +1,8 @@
 package models
 
 var DefaultDebug = Debug{
-	drawColliders: true,
-	drawPlayer:    true,
-	drawTiles:     true,
+	drawTiles:   true,
+	drawTilemap: true,
 }
 
 type Debug struct {
@@ -12,6 +11,7 @@ type Debug struct {
 	drawPlayer        bool
 	drawCollisionGrid bool
 	drawTiles         bool
+	drawTilemap       bool
 }
 
 func (d *Debug) ToggleColliders() {
@@ -34,6 +34,10 @@ func (d *Debug) ToggleTiles() {
 	d.drawTiles = !d.drawTiles
 }
 
+func (d *Debug) ToggleTilemap() {
+	d.drawTilemap = !d.drawTilemap
+}
+
 func (d *Debug) ShowColliders() bool {
 	return d.drawColliders
 }
@@ -52,4 +56,8 @@ func (d *Debug) ShowStaticGrid() bool {
 
 func (d *Debug) ShowTiles() bool {
 	return d.drawTiles
+}
+
+func (d *Debug) ShowTilemap() bool {
+	return d.drawTilemap
 }

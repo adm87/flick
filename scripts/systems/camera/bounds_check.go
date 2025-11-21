@@ -1,6 +1,8 @@
 package camera
 
 import (
+	"math"
+
 	"github.com/adm87/flick/scripts/actors"
 	"github.com/adm87/flick/scripts/components"
 	"github.com/adm87/flick/scripts/game"
@@ -26,6 +28,9 @@ func BoundsCheck(ctx game.Context, bounds [4]float32) error {
 	} else if y+halfHeight > bounds[3] {
 		y = bounds[3] - halfHeight
 	}
+
+	x = float32(math.Round(float64(x))) + 0.5
+	y = float32(math.Round(float64(y))) + 0.5
 
 	components.Transform.Get(cameraEntry).SetPosition(x, y)
 	return nil

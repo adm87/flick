@@ -19,6 +19,9 @@ const (
 type Screen struct {
 	Width  float32 // TargetWidth with applied RenderScale
 	Height float32 // TargetHeight with applied RenderScale
+
+	ActualWidth  int // Actual window width
+	ActualHeight int // Actual window height
 }
 
 // Context represents the game context, providing access to the ECS world, logger, and screen.
@@ -74,7 +77,12 @@ type gameContext struct {
 func NewGame(ctx context.Context) Game {
 	l := slog.Default().With(slog.String("version", "0"))
 	w := donburi.NewWorld()
-	s := Screen{float32(TargetWidth) * RenderScale, float32(TargetHeight) * RenderScale}
+	s := Screen{
+		float32(TargetWidth) * RenderScale,
+		float32(TargetHeight) * RenderScale,
+		TargetWidth,
+		TargetHeight,
+	}
 	return &gameContext{
 		ctx:           ctx,
 		logger:        l,
@@ -166,5 +174,5 @@ func (g *gameContext) Draw(screen *ebiten.Image) {
 }
 
 func (g *gameContext) Layout(outsideWidth, outsideHeight int) (int, int) {
-	return int(g.screen.Width), int(g.screen.Height)
+	return outsideWidth, outsideHeight
 }

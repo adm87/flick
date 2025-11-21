@@ -14,8 +14,8 @@ func FollowTarget(ctx game.Context, target *donburi.Entry) error {
 	curX, curY := components.Transform.Get(cameraEntry).Position()
 	tarX, tarY := components.Transform.Get(target).Position()
 
-	x := math.Lerp(curX, tarX, float32(ctx.Time().DeltaTime())*10)
-	y := math.Lerp(curY, tarY, float32(ctx.Time().DeltaTime())*10)
+	x := math.SmootherStep(curX, tarX, float32(ctx.Time().DeltaTime())*10)
+	y := math.SmootherStep(curY, tarY, float32(ctx.Time().DeltaTime())*10)
 
 	if math.Distance(curX, curY, x, y) < 0.01 {
 		x = tarX

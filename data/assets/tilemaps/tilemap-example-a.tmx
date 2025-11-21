@@ -21,7 +21,7 @@
 150,150,132,150,132,150,132,132,132,132,132,132,150,150,150,150,132,150,150,150,150,150,132,132,150,132
 </data>
  </layer>
- <objectgroup id="15" name="Collision">
+ <objectgroup id="15" name="Collision" locked="1">
   <object id="3" x="0" y="0" width="108" height="72"/>
   <object id="4" x="108" y="0" width="18" height="54"/>
   <object id="5" x="0" y="72" width="54" height="36"/>
