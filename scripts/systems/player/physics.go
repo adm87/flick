@@ -12,6 +12,10 @@ import (
 	"github.com/yohamta/donburi"
 )
 
+const (
+	gravity float32 = 9.81
+)
+
 func UpdatePhysics(ctx game.Context, world *collision.World) error {
 	playerEntry := actors.Player.MustFirst(ctx.ECS())
 
@@ -41,7 +45,7 @@ func UpdatePhysics(ctx game.Context, world *collision.World) error {
 
 	// =========== Vertical Movement and Collision ===========
 
-	vy += player.Gravity() * float32(ctx.Time().FixedDeltaTime())
+	vy += gravity * float32(ctx.Time().FixedDeltaTime())
 	ny := y + vy
 
 	bounds = collider.Shape().Bounds(nx, ny)
@@ -60,6 +64,8 @@ func UpdatePhysics(ctx game.Context, world *collision.World) error {
 		vy = 0
 		ny = ny + inter.Delta[1]
 	}
+
+	player.UpdateCoyoteTime(float32(ctx.Time().FixedDeltaTime()))
 
 	// =========== Apply Movement ===========
 

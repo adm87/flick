@@ -1,31 +1,20 @@
 package models
 
 var DefaultPlayer = Player{
-	gravity:  9.81,
-	onGround: false,
+	coyoteTime: 0.1,
+	onGround:   false,
 }
 
 type Player struct {
 	gravity  float32
 	onGround bool
-	onSlope  bool
-}
 
-func (p *Player) Gravity() float32 {
-	return p.gravity
-}
-
-func (p *Player) SetGravity(g float32) *Player {
-	p.gravity = g
-	return p
+	coyoteTime      float32
+	coyoteRemaining float32
 }
 
 func (p *Player) OnGround() bool {
 	return p.onGround
-}
-
-func (p *Player) OnSlope() bool {
-	return p.onSlope
 }
 
 func (p *Player) SetOnGround(og bool) *Player {
@@ -33,7 +22,19 @@ func (p *Player) SetOnGround(og bool) *Player {
 	return p
 }
 
-func (p *Player) SetOnSlope(os bool) *Player {
-	p.onSlope = os
+func (p *Player) UpdateCoyoteTime(dt float32) {
+	if p.onGround {
+		p.coyoteRemaining = p.coyoteTime
+	} else if p.coyoteRemaining > 0 {
+		p.coyoteRemaining -= dt
+	}
+}
+
+func (p *Player) CanJump() bool {
+	return p.onGround || p.coyoteRemaining > 0
+}
+
+func (p *Player) SetCoyoteTime(ct float32) *Player {
+	p.coyoteTime = ct
 	return p
 }
