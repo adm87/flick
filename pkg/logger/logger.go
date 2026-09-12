@@ -7,11 +7,11 @@ import (
 
 type Logger interface {
 	Info(msg string)
-	Infof(format string, args ...interface{})
+	Infof(format string, args ...any)
 	Error(msg string)
-	Errorf(format string, args ...interface{})
+	Errorf(format string, args ...any)
 	Fatal(msg string)
-	Fatalf(format string, args ...interface{})
+	Fatalf(format string, args ...any)
 }
 
 const (
@@ -43,9 +43,9 @@ func (l *logger) Errorf(format string, args ...any) {
 }
 
 func (l *logger) Fatal(msg string) {
-	log.Printf("[%s] %s", FatalPrefix, msg)
+	log.Fatalf("[%s] %s", FatalPrefix, msg)
 }
 
 func (l *logger) Fatalf(format string, args ...any) {
-	log.Printf("[%s] %s", FatalPrefix, fmt.Sprintf(format, args...))
+	log.Fatalf("[%s] %s", FatalPrefix, fmt.Sprintf(format, args...))
 }

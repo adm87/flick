@@ -11,11 +11,11 @@ type GameUpdate interface {
 }
 
 type GameDraw interface {
-	Draw(target *ebiten.Image)
+	Draw(target *ebiten.Image) error
 }
 
 type GameLayout interface {
-	Layout(outsideWidth, outsideHeight int) (int, int)
+	Layout(outsideWidth, outsideHeight int) (int, int, error)
 }
 
 type GameShutdown interface {
@@ -30,13 +30,14 @@ func (n *noopUpdate) Update(ctx context.Context, t Time) error {
 
 type noopDraw struct{}
 
-func (n *noopDraw) Draw(target *ebiten.Image) {
+func (n *noopDraw) Draw(target *ebiten.Image) error {
+	return nil
 }
 
 type noopLayout struct{}
 
-func (n *noopLayout) Layout(outsideWidth, outsideHeight int) (int, int) {
-	return outsideWidth, outsideHeight
+func (n *noopLayout) Layout(outsideWidth, outsideHeight int) (int, int, error) {
+	return outsideWidth, outsideHeight, nil
 }
 
 type noopShutdown struct{}

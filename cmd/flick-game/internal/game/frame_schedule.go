@@ -9,8 +9,8 @@ import (
 	"github.com/yohamta/donburi"
 )
 
-func setupFrameSchedule(frameSchedule *ecs.ECSFrameScheduler) {
-	frameSchedule.AddUpdate(ecs.UpdatePhaseUpdate,
+func setupFrameSchedule(frameScheduler *ecs.ECSFrameScheduler) {
+	frameScheduler.AddUpdate(ecs.UpdatePhaseUpdate,
 		func(ctx context.Context, world donburi.World, dt float64) error {
 			// Add your update logic here
 
@@ -20,13 +20,13 @@ func setupFrameSchedule(frameSchedule *ecs.ECSFrameScheduler) {
 			return nil
 		},
 	)
-	frameSchedule.AddUpdate(ecs.UpdatePhaseFixedUpdate,
+	frameScheduler.AddUpdate(ecs.UpdatePhaseFixedUpdate,
 		func(ctx context.Context, world donburi.World, dt float64) error {
 			// Add your fixed update logic here
 			return nil
 		},
 	)
-	frameSchedule.AddUpdate(ecs.UpdatePhaseLateUpdate,
+	frameScheduler.AddUpdate(ecs.UpdatePhaseLateUpdate,
 		func(ctx context.Context, world donburi.World, dt float64) error {
 			// Add your late update logic here
 			return nil

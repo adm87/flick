@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/adm87/flick/pkg/logger"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -14,6 +15,7 @@ type shell struct {
 	layout   GameLayout
 	shutdown GameShutdown
 	time     Time
+	logger   logger.Logger
 }
 
 func (s *shell) Shutdown(ctx context.Context) error {
@@ -28,13 +30,22 @@ func (s *shell) Shutdown(ctx context.Context) error {
 func (s *shell) Update() error {
 	select {
 	case <-s.ctx.Done():
+		s.logger.Info("context done, terminating game.")
 		return errors.Join(s.ctx.Err(), ebiten.Termination)
 	default:
-		err := s.update.Update(s.ctx, s.time)
-		if errors.Is(err, context.DeadlineExceeded) {
-			return errors.Join(err, ebiten.Termination)
+		if err := s.update.Update(s.ctx, s.time); err != nil {
+			switch {
+			case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
+				s.logger.Info("context canceled or deadline exceeded, terminating game.")
+				return errors.Join(err, ebiten.Termination)
+			case errors.Is(err, ebiten.Termination):
+				s.logger.Info("termination signal received, terminating game.")
+				return errors.Join(err, ebiten.Termination)
+			}
+			s.logger.Error("error during update: " + err.Error())
+			return err
 		}
-		return err
+		return nil
 	}
 }
 
@@ -43,10 +54,17 @@ func (s *shell) Draw(target *ebiten.Image) {
 	case <-s.ctx.Done():
 		return
 	default:
-		s.draw.Draw(target)
+		if err := s.draw.Draw(target); err != nil {
+			s.logger.Error("error during draw: " + err.Error())
+		}
 	}
 }
 
 func (s *shell) Layout(outsideWidth, outsideHeight int) (int, int) {
-	return s.layout.Layout(outsideWidth, outsideHeight)
+	w, h, err := s.layout.Layout(outsideWidth, outsideHeight)
+	if err != nil {
+		s.logger.Error("error during layout: " + err.Error())
+		return outsideWidth, outsideHeight
+	}
+	return w, h
 }

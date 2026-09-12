@@ -7,14 +7,26 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/adm87/flick/pkg/logger"
 	"github.com/hajimehoshi/ebiten/v2"
 )
+
+type noopLogger struct{}
+
+func (n *noopLogger) Info(msg string)                   {}
+func (n *noopLogger) Infof(format string, args ...any)  {}
+func (n *noopLogger) Error(msg string)                  {}
+func (n *noopLogger) Errorf(format string, args ...any) {}
+func (n *noopLogger) Fatal(msg string)                  {}
+func (n *noopLogger) Fatalf(format string, args ...any) {}
 
 type RunOptions struct {
 	Update   GameUpdate
 	Draw     GameDraw
 	Layout   GameLayout
 	Shutdown GameShutdown
+
+	Logger logger.Logger
 
 	GameOptions *ebiten.RunGameOptions
 
@@ -32,6 +44,7 @@ func Run(opts ...RunOption) error {
 		Draw:         &noopDraw{},
 		Layout:       &noopLayout{},
 		Shutdown:     &noopShutdown{},
+		Logger:       &noopLogger{},
 		WindowTitle:  "Untitled Game",
 		WindowWidth:  800,
 		WindowHeight: 600,
@@ -58,6 +71,7 @@ func Run(opts ...RunOption) error {
 		draw:     options.Draw,
 		layout:   options.Layout,
 		shutdown: options.Shutdown,
+		logger:   options.Logger,
 		time:     newGameTime(options.FPS),
 	}
 
@@ -127,5 +141,11 @@ func WithDraw(draw GameDraw) RunOption {
 func WithLayout(layout GameLayout) RunOption {
 	return func(opts *RunOptions) {
 		opts.Layout = layout
+	}
+}
+
+func WithLogger(logger logger.Logger) RunOption {
+	return func(opts *RunOptions) {
+		opts.Logger = logger
 	}
 }

@@ -25,32 +25,36 @@ type ECSFrameScheduler struct {
 }
 
 func NewECSFrameScheduler(e *ECS) *ECSFrameScheduler {
+	if e == nil {
+		panic("ECS cannot be nil")
+	}
 	return &ECSFrameScheduler{
 		ecs: e,
 	}
 }
 
-func (s *ECSFrameScheduler) AddUpdate(phase UpdatePhase, update FrameUpdate) {
+func (s *ECSFrameScheduler) AddUpdate(phase UpdatePhase, updates ...FrameUpdate) {
 	switch phase {
 	case UpdatePhaseUpdate:
-		s.updates = append(s.updates, update)
+		s.updates = append(s.updates, updates...)
 	case UpdatePhaseFixedUpdate:
-		s.fixedUpdates = append(s.fixedUpdates, update)
+		s.fixedUpdates = append(s.fixedUpdates, updates...)
 	case UpdatePhaseLateUpdate:
-		s.lateUpdates = append(s.lateUpdates, update)
+		s.lateUpdates = append(s.lateUpdates, updates...)
 	}
 }
 
 func (s *ECSFrameScheduler) Update(ctx context.Context, t game.Time) error {
-	if err := runUpdates(ctx, s.ecs.World(), t.DeltaTime(), s.updates); err != nil {
+	world := s.ecs.World()
+	if err := runUpdates(ctx, world, t.DeltaTime(), s.updates); err != nil {
 		return err
 	}
 	for range t.FixedSteps() {
-		if err := runUpdates(ctx, s.ecs.World(), t.FixedDeltaTime(), s.fixedUpdates); err != nil {
+		if err := runUpdates(ctx, world, t.FixedDeltaTime(), s.fixedUpdates); err != nil {
 			return err
 		}
 	}
-	if err := runUpdates(ctx, s.ecs.World(), t.DeltaTime(), s.lateUpdates); err != nil {
+	if err := runUpdates(ctx, world, t.DeltaTime(), s.lateUpdates); err != nil {
 		return err
 	}
 	return nil

@@ -10,6 +10,6 @@ import (
 
 func main() {
 	if err := game.Run(); err != nil {
-		log.Fatal(err)
+		log.Fatalf("exited with error: %v", err)
 	}
 }
