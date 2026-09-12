@@ -1,0 +1,26 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "[Flick Game] Launch",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}/cmd/flick-game",
+            "args": [
+                "--working-dir", "${workspaceFolder}",
+            ]
+		},
+		{
+			"name": "[Flick Game] Launch with pprof",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}/cmd/flick-game",
+			"buildFlags": "-tags=pprof",
+            "args": [
+                "--working-dir", "${workspaceFolder}",
+            ]
+		}
+	]
+}
