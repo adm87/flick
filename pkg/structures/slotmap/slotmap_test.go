@@ -151,3 +151,160 @@ func TestSlotMap(t *testing.T) {
 		require.True(t, visited <= 2)
 	})
 }
+
+func BenchmarkSlotMap(b *testing.B) {
+	b.Run("Insert", func(b *testing.B) {
+		b.Run("map", func(b *testing.B) {
+			b.Run("Growth", func(b *testing.B) {
+				b.ReportAllocs()
+				m := make(map[int]int)
+				for i := range b.N {
+					m[i] = i
+				}
+			})
+			b.Run("Preallocated", func(b *testing.B) {
+				b.ReportAllocs()
+				m := make(map[int]int, b.N)
+				for i := range b.N {
+					m[i] = i
+				}
+			})
+		})
+		b.Run("slotmap", func(b *testing.B) {
+			b.Run("Growth", func(b *testing.B) {
+				b.ReportAllocs()
+				sm := slotmap.New[int](1)
+				for i := range b.N {
+					_ = sm.Insert(i)
+				}
+			})
+			b.Run("Preallocated", func(b *testing.B) {
+				b.ReportAllocs()
+				sm := slotmap.New[int](b.N)
+				for i := range b.N {
+					_ = sm.Insert(i)
+				}
+			})
+		})
+	})
+
+	b.Run("Get", func(b *testing.B) {
+		const size = 10_000
+
+		b.Run("map", func(b *testing.B) {
+			m, keys := benchmarkFilledMap(size)
+			b.ReportAllocs()
+			b.ResetTimer()
+			for i := range b.N {
+				_ = m[keys[i%size]]
+			}
+		})
+		b.Run("slotmap", func(b *testing.B) {
+			sm, keys := benchmarkFilledSlotMap(size)
+			b.ReportAllocs()
+			b.ResetTimer()
+			for i := range b.N {
+				_, _ = sm.Get(keys[i%size])
+			}
+		})
+	})
+
+	b.Run("Delete", func(b *testing.B) {
+		b.Run("map", func(b *testing.B) {
+			m, keys := benchmarkFilledMap(b.N)
+			b.ReportAllocs()
+			b.ResetTimer()
+			for i := range b.N {
+				delete(m, keys[i])
+			}
+		})
+		b.Run("slotmap", func(b *testing.B) {
+			sm, keys := benchmarkFilledSlotMap(b.N)
+			b.ReportAllocs()
+			b.ResetTimer()
+			for i := range b.N {
+				_, _ = sm.Delete(keys[i])
+			}
+		})
+	})
+
+	b.Run("RangeFull", func(b *testing.B) {
+		const size = 10_000
+
+		b.Run("map", func(b *testing.B) {
+			m, _ := benchmarkFilledMap(size)
+			b.ReportAllocs()
+			b.ResetTimer()
+			sum := 0
+			for range b.N {
+				for _, v := range m {
+					sum += v
+				}
+			}
+			_ = sum
+		})
+		b.Run("slotmap", func(b *testing.B) {
+			sm, _ := benchmarkFilledSlotMap(size)
+			b.ReportAllocs()
+			b.ResetTimer()
+			sum := 0
+			for range b.N {
+				sm.Range(func(k slotmap.K, v int) bool {
+					sum += v
+					return true
+				})
+			}
+			_ = sum
+		})
+	})
+
+	b.Run("RangeEarlyExit", func(b *testing.B) {
+		const size = 10_000
+
+		b.Run("map", func(b *testing.B) {
+			m, _ := benchmarkFilledMap(size)
+			b.ReportAllocs()
+			b.ResetTimer()
+			sum := 0
+			for range b.N {
+				for _, v := range m {
+					sum += v
+					break
+				}
+			}
+			_ = sum
+		})
+		b.Run("slotmap", func(b *testing.B) {
+			sm, _ := benchmarkFilledSlotMap(size)
+			b.ReportAllocs()
+			b.ResetTimer()
+			sum := 0
+			for range b.N {
+				sm.Range(func(k slotmap.K, v int) bool {
+					sum += v
+					return false
+				})
+			}
+			_ = sum
+		})
+	})
+}
+
+func benchmarkFilledSlotMap(size int) (*slotmap.SlotMap[int], []slotmap.K) {
+	sm := slotmap.New[int](1)
+	keys := make([]slotmap.K, size)
+	for i := range size {
+		keys[i] = sm.Insert(i)
+	}
+	return sm, keys
+}
+
+func benchmarkFilledMap(size int) (map[int]int, []int) {
+	m := make(map[int]int, size)
+	keys := make([]int, size)
+	for i := range size {
+		m[i] = i
+		keys[i] = i
+	}
+	return m, keys
+}

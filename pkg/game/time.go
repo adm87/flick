@@ -8,7 +8,7 @@ type Time interface {
 	FixedSteps() int
 }
 
-type gtime struct {
+type gametime struct {
 	lastTick       time.Time
 	deltaTime      time.Duration
 	fixedDeltaTime time.Duration
@@ -21,26 +21,26 @@ const (
 	DeltaTimeMax   = time.Second
 )
 
-func newGameTime(fps int) *gtime {
+func newGameTime(fps int) *gametime {
 	fps = max(fps, 1)
-	return &gtime{
+	return &gametime{
 		fixedDeltaTime: time.Second / time.Duration(fps),
 	}
 }
 
-func (t *gtime) DeltaTime() float64 {
+func (t *gametime) DeltaTime() float64 {
 	return t.deltaTime.Seconds()
 }
 
-func (t *gtime) FixedDeltaTime() float64 {
+func (t *gametime) FixedDeltaTime() float64 {
 	return t.fixedDeltaTime.Seconds()
 }
 
-func (t *gtime) FixedSteps() int {
+func (t *gametime) FixedSteps() int {
 	return t.fixedSteps
 }
 
-func (t *gtime) tick() {
+func (t *gametime) tick() {
 	now := time.Now()
 
 	if t.lastTick.IsZero() {

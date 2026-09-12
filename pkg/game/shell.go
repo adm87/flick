@@ -14,8 +14,9 @@ type shell struct {
 	draw     GameDraw
 	layout   GameLayout
 	shutdown GameShutdown
-	time     Time
 	logger   logger.Logger
+
+	time *gametime
 }
 
 func (s *shell) Shutdown(ctx context.Context) error {
@@ -33,6 +34,7 @@ func (s *shell) Update() error {
 		s.logger.Info("context done, terminating game.")
 		return errors.Join(s.ctx.Err(), ebiten.Termination)
 	default:
+		s.time.tick()
 		if err := s.update.Update(s.ctx, s.time); err != nil {
 			switch {
 			case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
@@ -41,9 +43,10 @@ func (s *shell) Update() error {
 			case errors.Is(err, ebiten.Termination):
 				s.logger.Info("termination signal received, terminating game.")
 				return errors.Join(err, ebiten.Termination)
+			default:
+				s.logger.Error("error during update: " + err.Error())
+				return errors.Join(err, ebiten.Termination)
 			}
-			s.logger.Error("error during update: " + err.Error())
-			return err
 		}
 		return nil
 	}

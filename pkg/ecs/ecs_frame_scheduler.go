@@ -2,8 +2,10 @@ package ecs
 
 import (
 	"context"
+	"errors"
 
 	"github.com/adm87/flick/pkg/game"
+	"github.com/adm87/flick/pkg/logger"
 	"github.com/yohamta/donburi"
 )
 
@@ -18,19 +20,22 @@ const (
 type FrameUpdate func(ctx context.Context, world donburi.World, dt float64) error
 
 type ECSFrameScheduler struct {
+	logger       logger.Logger
 	ecs          *ECS
 	updates      []FrameUpdate
 	fixedUpdates []FrameUpdate
 	lateUpdates  []FrameUpdate
 }
 
-func NewECSFrameScheduler(e *ECS) *ECSFrameScheduler {
+func NewECSFrameScheduler(e *ECS, logger logger.Logger) (*ECSFrameScheduler, error) {
 	if e == nil {
-		panic("ECS cannot be nil")
+		logger.Error("ECS cannot be nil")
+		return nil, errors.New("ECS cannot be nil")
 	}
 	return &ECSFrameScheduler{
-		ecs: e,
-	}
+		ecs:    e,
+		logger: logger,
+	}, nil
 }
 
 func (s *ECSFrameScheduler) AddUpdate(phase UpdatePhase, updates ...FrameUpdate) {
@@ -41,6 +46,8 @@ func (s *ECSFrameScheduler) AddUpdate(phase UpdatePhase, updates ...FrameUpdate)
 		s.fixedUpdates = append(s.fixedUpdates, updates...)
 	case UpdatePhaseLateUpdate:
 		s.lateUpdates = append(s.lateUpdates, updates...)
+	default:
+		s.logger.Errorf("unknown update phase: %d", phase)
 	}
 }
 
