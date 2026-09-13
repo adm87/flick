@@ -8,5 +8,5 @@ import (
 type ECSFactoryType = slotmap.K
 
 type ECSFactory interface {
-	CreateEntity() *donburi.Entry
+	CreateEntity(world donburi.World) *donburi.Entry
 }

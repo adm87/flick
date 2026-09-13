@@ -1,51 +1,99 @@
 package logger
 
 import (
-	"fmt"
-	"log"
+	"io"
+
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
+
+type Field = zap.Field
 
 type Logger interface {
-	Info(msg string)
-	Infof(format string, args ...any)
-	Error(msg string)
-	Errorf(format string, args ...any)
-	Fatal(msg string)
-	Fatalf(format string, args ...any)
+	Debug(msg string, fields ...Field)
+	Info(msg string, fields ...Field)
+	Warn(msg string, fields ...Field)
+	Error(msg string, fields ...Field)
+	Fatal(msg string, fields ...Field)
+	Sync()
 }
 
-const (
-	InfoPrefix  = "INFO"
-	ErrorPrefix = "ERROR"
-	FatalPrefix = "FATAL"
-)
+type noopLogger struct{}
 
-func NewLogger() Logger {
-	return &logger{}
+func (n *noopLogger) Info(msg string, fields ...Field)  {}
+func (n *noopLogger) Error(msg string, fields ...Field) {}
+func (n *noopLogger) Fatal(msg string, fields ...Field) {}
+func (n *noopLogger) Debug(msg string, fields ...Field) {}
+func (n *noopLogger) Warn(msg string, fields ...Field)  {}
+func (n *noopLogger) Sync()                             {}
+
+var N Logger = &noopLogger{}
+
+func NewLogger(out io.Writer) Logger {
+	encCfg := zap.NewProductionEncoderConfig()
+	encCfg.EncodeTime = zapcore.TimeEncoderOfLayout("2006/01/02 15:04:05")
+	encCfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	encCfg.CallerKey = ""
+	encCfg.ConsoleSeparator = " "
+
+	encoder := zapcore.NewConsoleEncoder(encCfg)
+	core := zapcore.NewCore(encoder, zapcore.AddSync(out), zap.InfoLevel)
+
+	return &logger{zap: zap.New(core)}
 }
 
-type logger struct{}
-
-func (l *logger) Info(msg string) {
-	log.Printf("[%s] %s", InfoPrefix, msg)
+type logger struct {
+	zap *zap.Logger
 }
 
-func (l *logger) Infof(format string, args ...any) {
-	log.Printf("[%s] %s", InfoPrefix, fmt.Sprintf(format, args...))
+func (l *logger) Debug(msg string, fields ...Field) {
+	l.zap.Debug(msg, fields...)
 }
 
-func (l *logger) Error(msg string) {
-	log.Printf("[%s] %s", ErrorPrefix, msg)
+func (l *logger) Info(msg string, fields ...Field) {
+	l.zap.Info(msg, fields...)
 }
 
-func (l *logger) Errorf(format string, args ...any) {
-	log.Printf("[%s] %s", ErrorPrefix, fmt.Sprintf(format, args...))
+func (l *logger) Warn(msg string, fields ...Field) {
+	l.zap.Warn(msg, fields...)
 }
 
-func (l *logger) Fatal(msg string) {
-	log.Fatalf("[%s] %s", FatalPrefix, msg)
+func (l *logger) Error(msg string, fields ...Field) {
+	l.zap.Error(msg, fields...)
 }
 
-func (l *logger) Fatalf(format string, args ...any) {
-	log.Fatalf("[%s] %s", FatalPrefix, fmt.Sprintf(format, args...))
+func (l *logger) Fatal(msg string, fields ...Field) {
+	l.zap.Fatal(msg, fields...)
+}
+
+func (l *logger) Sync() {
+	_ = l.zap.Sync()
+}
+
+func String(key, value string) Field {
+	return zap.String(key, value)
+}
+
+func Int(key string, value int) Field {
+	return zap.Int(key, value)
+}
+
+func Float64(key string, value float64) Field {
+	return zap.Float64(key, value)
+}
+
+func Float32(key string, value float32) Field {
+	return zap.Float32(key, value)
+}
+
+func Bool(key string, value bool) Field {
+	return zap.Bool(key, value)
+}
+
+func ErrorField(key string, err error) Field {
+	return zap.NamedError(key, err)
+}
+
+func Reflect(key string, value any) Field {
+	return zap.Any(key, value)
 }

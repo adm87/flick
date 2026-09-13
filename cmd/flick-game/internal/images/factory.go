@@ -2,6 +2,8 @@ package images
 
 import (
 	"github.com/adm87/flick/pkg/ecs"
+	"github.com/adm87/flick/pkg/ecs/components/renderable"
+	"github.com/adm87/flick/pkg/ecs/components/transform"
 	"github.com/adm87/flick/pkg/logger"
 	"github.com/yohamta/donburi"
 )
@@ -18,6 +20,13 @@ func NewECSImageFactory(rendererType ecs.ECSRendererType, logger logger.Logger) 
 	}
 }
 
-func (f *ECSImageFactory) CreateEntity() *donburi.Entry {
-	return nil
+func (f *ECSImageFactory) CreateEntity(world donburi.World) *donburi.Entry {
+	entry := world.Entry(world.Create(
+		transform.TransformComponent,
+		transform.MatrixComponent,
+		renderable.RenderableComponent,
+		ImageComponent,
+	))
+	renderable.SetType(entry, uint64(f.rendererType))
+	return entry
 }

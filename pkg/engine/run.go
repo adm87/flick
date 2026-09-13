@@ -1,4 +1,4 @@
-package game
+package engine
 
 import (
 	"context"
@@ -10,15 +10,6 @@ import (
 	"github.com/adm87/flick/pkg/logger"
 	"github.com/hajimehoshi/ebiten/v2"
 )
-
-type noopLogger struct{}
-
-func (n *noopLogger) Info(msg string)                   {}
-func (n *noopLogger) Infof(format string, args ...any)  {}
-func (n *noopLogger) Error(msg string)                  {}
-func (n *noopLogger) Errorf(format string, args ...any) {}
-func (n *noopLogger) Fatal(msg string)                  {}
-func (n *noopLogger) Fatalf(format string, args ...any) {}
 
 type RunOptions struct {
 	Update   GameUpdate
@@ -44,7 +35,7 @@ func Run(opts ...RunOption) error {
 		Draw:         &noopDraw{},
 		Layout:       &noopLayout{},
 		Shutdown:     &noopShutdown{},
-		Logger:       &noopLogger{},
+		Logger:       logger.N,
 		WindowTitle:  "Untitled Game",
 		WindowWidth:  800,
 		WindowHeight: 600,

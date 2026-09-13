@@ -4,9 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/adm87/flick/pkg/game"
+	"github.com/adm87/flick/pkg/engine"
 	"github.com/adm87/flick/pkg/logger"
-	"github.com/yohamta/donburi"
 )
 
 type UpdatePhase int8
@@ -17,7 +16,7 @@ const (
 	UpdatePhaseLateUpdate
 )
 
-type FrameUpdate func(ctx context.Context, world donburi.World, dt float64) error
+type FrameUpdate func(ctx context.Context, e *ECS, dt float64) error
 
 type ECSFrameScheduler struct {
 	logger       logger.Logger
@@ -47,33 +46,32 @@ func (s *ECSFrameScheduler) AddUpdate(phase UpdatePhase, updates ...FrameUpdate)
 	case UpdatePhaseLateUpdate:
 		s.lateUpdates = append(s.lateUpdates, updates...)
 	default:
-		s.logger.Errorf("unknown update phase: %d", phase)
+		s.logger.Error("unknown update phase", logger.Int("phase", int(phase)))
 	}
 }
 
-func (s *ECSFrameScheduler) Update(ctx context.Context, t game.Time) error {
-	world := s.ecs.World()
-	if err := runUpdates(ctx, world, t.DeltaTime(), s.updates); err != nil {
+func (s *ECSFrameScheduler) Update(ctx context.Context, t engine.Time) error {
+	if err := runUpdates(ctx, s.ecs, t.DeltaTime(), s.updates); err != nil {
 		return err
 	}
 	for range t.FixedSteps() {
-		if err := runUpdates(ctx, world, t.FixedDeltaTime(), s.fixedUpdates); err != nil {
+		if err := runUpdates(ctx, s.ecs, t.FixedDeltaTime(), s.fixedUpdates); err != nil {
 			return err
 		}
 	}
-	if err := runUpdates(ctx, world, t.DeltaTime(), s.lateUpdates); err != nil {
+	if err := runUpdates(ctx, s.ecs, t.DeltaTime(), s.lateUpdates); err != nil {
 		return err
 	}
 	return nil
 }
 
-func runUpdates(ctx context.Context, world donburi.World, dt float64, updates []FrameUpdate) error {
+func runUpdates(ctx context.Context, e *ECS, dt float64, updates []FrameUpdate) error {
 	for i := range updates {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			if err := updates[i](ctx, world, dt); err != nil {
+			if err := updates[i](ctx, e, dt); err != nil {
 				return err
 			}
 		}

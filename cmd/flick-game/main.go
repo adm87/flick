@@ -3,13 +3,13 @@ package main
 import (
 	"log"
 
-	_ "github.com/adm87/flick/cmd/flick-game/internal/diagnostics"
+	"github.com/adm87/flick/cmd/flick-game/internal"
 
-	"github.com/adm87/flick/cmd/flick-game/internal/game"
+	_ "github.com/adm87/flick/cmd/flick-game/internal/diagnostics"
 )
 
 func main() {
-	if err := game.Run(); err != nil {
+	if err := internal.Run(); err != nil {
 		log.Fatalf("exited with error: %v", err)
 	}
 }

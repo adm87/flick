@@ -11,6 +11,7 @@ import (
 type ECSRendererType = slotmap.K
 
 type ECSRenderer interface {
+	Render(target *ebiten.Image) error
 }
 
 type ECSRenderPipeline struct {
