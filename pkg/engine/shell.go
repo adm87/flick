@@ -57,9 +57,7 @@ func (s *shell) Draw(target *ebiten.Image) {
 	case <-s.ctx.Done():
 		return
 	default:
-		if err := s.draw.Draw(target); err != nil {
-			s.logger.Error("error during draw: " + err.Error())
-		}
+		s.draw.Draw(target)
 	}
 }
 
