@@ -10,6 +10,7 @@ import (
 type Field = zap.Field
 
 type Logger interface {
+	With(fields ...Field) Logger
 	Debug(msg string, fields ...Field)
 	Info(msg string, fields ...Field)
 	Warn(msg string, fields ...Field)
@@ -20,6 +21,7 @@ type Logger interface {
 
 type noopLogger struct{}
 
+func (n *noopLogger) With(fields ...Field) Logger       { return n }
 func (n *noopLogger) Info(msg string, fields ...Field)  {}
 func (n *noopLogger) Error(msg string, fields ...Field) {}
 func (n *noopLogger) Fatal(msg string, fields ...Field) {}
@@ -44,6 +46,10 @@ func NewLogger(out io.Writer) Logger {
 
 type logger struct {
 	zap *zap.Logger
+}
+
+func (l *logger) With(fields ...Field) Logger {
+	return &logger{zap: l.zap.With(fields...)}
 }
 
 func (l *logger) Debug(msg string, fields ...Field) {

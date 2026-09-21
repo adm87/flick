@@ -17,7 +17,7 @@
 			"request": "launch",
 			"mode": "auto",
 			"program": "${workspaceFolder}/cmd/flick-game",
-			"buildFlags": "-tags=pprof",
+			"buildFlags": "-tags=pprof",//,ebitenginedebug",
             "args": [
                 "--working-dir", "${workspaceFolder}",
             ]

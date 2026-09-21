@@ -45,3 +45,19 @@ type noopShutdown struct{}
 func (n *noopShutdown) Shutdown(ctx context.Context) error {
 	return nil
 }
+
+func NewNoopUpdate() GameUpdate {
+	return &noopUpdate{}
+}
+
+func NewNoopDraw() GameDraw {
+	return &noopDraw{}
+}
+
+func NewNoopLayout() GameLayout {
+	return &noopLayout{}
+}
+
+func NewNoopShutdown() GameShutdown {
+	return &noopShutdown{}
+}

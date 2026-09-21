@@ -42,7 +42,7 @@ func (s *shell) Update() error {
 				return errors.Join(err, ebiten.Termination)
 			case errors.Is(err, ebiten.Termination):
 				s.logger.Info("termination signal received, terminating game.")
-				return errors.Join(err, ebiten.Termination)
+				return err
 			default:
 				s.logger.Error("error during update: " + err.Error())
 				return errors.Join(err, ebiten.Termination)
@@ -57,7 +57,9 @@ func (s *shell) Draw(target *ebiten.Image) {
 	case <-s.ctx.Done():
 		return
 	default:
-		s.draw.Draw(target)
+		if err := s.draw.Draw(target); err != nil {
+			s.logger.Error("error during draw: " + err.Error())
+		}
 	}
 }
 

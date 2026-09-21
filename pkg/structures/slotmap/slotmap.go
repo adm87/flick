@@ -1,20 +1,32 @@
 package slotmap
 
-// K is a versioned key that uniquely identifies a slot in the SlotMap.
-// It combines a 32-bit index and 32-bit version in a single 64-bit value.
+// K is a versioned key used to uniquely identify a slot in the SlotMap.
+// It combines a 32-bit index and a 32-bit version into a single 64-bit value.
 // The version is incremented each time a slot is reused, preventing ABA problems.
-type K uint64
-
-// pack combines an index and version into a key K.
-func pack(index, version uint32) K {
-	return K(uint64(version)<<32 | uint64(uint32(index)))
+type K struct {
+	index   uint32
+	version uint32
 }
 
-// unpack extracts the index and version from a key K.
-func unpack(k K) (index, version uint32) {
-	index = uint32(k)
-	version = uint32(k >> 32)
-	return
+func (k K) Index() uint32 {
+	return k.index
+}
+
+func (k K) Version() uint32 {
+	return k.version
+}
+
+// Pack combines the index and version into a single 64-bit value.
+func (k K) Pack() uint64 {
+	return uint64(k.version)<<32 | uint64(k.index)
+}
+
+// Unpack extracts the index and version from a packed 64-bit value.
+func Unpack(packed uint64) K {
+	return K{
+		index:   uint32(packed & 0xFFFFFFFF),
+		version: uint32(packed >> 32),
+	}
 }
 
 // checkCapacity validates that the requested capacity is within acceptable bounds.
@@ -100,7 +112,10 @@ func (s *SlotMap[T]) Insert(value T) K {
 	slot.data.value = value
 
 	s.len++
-	return pack(index, slot.version)
+	return K{
+		index:   index,
+		version: slot.version,
+	}
 }
 
 // Get retrieves the value associated with key k.
@@ -109,7 +124,7 @@ func (s *SlotMap[T]) Insert(value T) K {
 func (s *SlotMap[T]) Get(k K) (T, bool) {
 	var zero T
 
-	index, version := unpack(k)
+	index, version := k.index, k.version
 	if index == 0 || index >= uint32(len(s.slots)) {
 		return zero, false
 	}
@@ -128,7 +143,7 @@ func (s *SlotMap[T]) Get(k K) (T, bool) {
 func (s *SlotMap[T]) Set(k K, value T) (oldValue T, ok bool) {
 	var zero T
 
-	index, version := unpack(k)
+	index, version := k.index, k.version
 	if index == 0 || index >= uint32(len(s.slots)) {
 		return zero, false
 	}
@@ -150,7 +165,7 @@ func (s *SlotMap[T]) Set(k K, value T) (oldValue T, ok bool) {
 func (s *SlotMap[T]) Delete(k K) (T, bool) {
 	var zero T
 
-	index, version := unpack(k)
+	index, version := k.index, k.version
 	if index == 0 || index >= uint32(len(s.slots)) {
 		return zero, false
 	}
@@ -178,7 +193,10 @@ func (s *SlotMap[T]) Range(fn func(k K, value T) bool) {
 	for i := 1; i < len(s.slots); i++ {
 		slot := &s.slots[i]
 		if slot.IsOccupied() {
-			k := pack(uint32(i), slot.version)
+			k := K{
+				index:   uint32(i),
+				version: slot.version,
+			}
 			if !fn(k, slot.data.value) {
 				return
 			}
