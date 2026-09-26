@@ -1,5 +1,12 @@
 package slotmap
 
+import "errors"
+
+var (
+	ErrInvalidKey = errors.New("invalid key")
+	ErrNotFound   = errors.New("not found")
+)
+
 // K is a versioned key used to uniquely identify a slot in the SlotMap.
 // It combines a 32-bit index and a 32-bit version into a single 64-bit value.
 // The version is incremented each time a slot is reused, preventing ABA problems.
@@ -121,58 +128,55 @@ func (s *SlotMap[T]) Insert(value T) K {
 // Get retrieves the value associated with key k.
 // It returns the value and true if the key is valid and refers to an occupied slot,
 // or a zero value and false if the key is invalid or the slot has been deleted.
-func (s *SlotMap[T]) Get(k K) (T, bool) {
+func (s *SlotMap[T]) Get(k K) (T, error) {
 	var zero T
 
 	index, version := k.index, k.version
 	if index == 0 || index >= uint32(len(s.slots)) {
-		return zero, false
+		return zero, ErrInvalidKey
 	}
 
 	slot := &s.slots[index]
 	if slot.version != version || !slot.IsOccupied() {
-		return zero, false
+		return zero, ErrNotFound
 	}
 
-	return slot.data.value, true
+	return slot.data.value, nil
 }
 
 // Set updates the value at key k.
 // It returns the previous value and true if the update succeeded,
 // or a zero value and false if the key is invalid or the slot has been deleted.
-func (s *SlotMap[T]) Set(k K, value T) (oldValue T, ok bool) {
-	var zero T
-
+func (s *SlotMap[T]) Set(k K, value T) error {
 	index, version := k.index, k.version
 	if index == 0 || index >= uint32(len(s.slots)) {
-		return zero, false
+		return ErrInvalidKey
 	}
 
 	slot := &s.slots[index]
 	if slot.version != version || !slot.IsOccupied() {
-		return zero, false
+		return ErrNotFound
 	}
 
-	oldValue = slot.data.value
 	slot.data.value = value
-	return oldValue, true
+	return nil
 }
 
 // Delete removes the value at key k and returns it.
 // It returns the deleted value and true if the deletion succeeded,
 // or a zero value and false if the key is invalid or already deleted.
 // After deletion, the key becomes permanently invalid due to version increment.
-func (s *SlotMap[T]) Delete(k K) (T, bool) {
+func (s *SlotMap[T]) Delete(k K) (T, error) {
 	var zero T
 
 	index, version := k.index, k.version
 	if index == 0 || index >= uint32(len(s.slots)) {
-		return zero, false
+		return zero, ErrInvalidKey
 	}
 
 	slot := &s.slots[index]
 	if slot.version != version || !slot.IsOccupied() {
-		return zero, false
+		return zero, ErrNotFound
 	}
 
 	oldValue := slot.data.value
@@ -183,7 +187,7 @@ func (s *SlotMap[T]) Delete(k K) (T, bool) {
 
 	s.head = index
 	s.len--
-	return oldValue, true
+	return oldValue, nil
 }
 
 // Range iterates over all occupied slots in the SlotMap, calling fn for each key-value pair.

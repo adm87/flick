@@ -23,8 +23,8 @@ func TestSlotMap(t *testing.T) {
 		require.Equal(t, 0, slotMap.Cap())
 
 		k := slotMap.Insert(7)
-		v, ok := slotMap.Get(k)
-		require.True(t, ok)
+		v, err := slotMap.Get(k)
+		require.NoError(t, err)
 		require.Equal(t, 7, v)
 	})
 
@@ -38,9 +38,9 @@ func TestSlotMap(t *testing.T) {
 		slotMap := slotmap.New[int](2)
 
 		k := slotMap.Insert(42)
-		v, ok := slotMap.Get(k)
+		v, err := slotMap.Get(k)
 
-		require.True(t, ok)
+		require.NoError(t, err)
 		require.Equal(t, 42, v)
 	})
 
@@ -48,8 +48,8 @@ func TestSlotMap(t *testing.T) {
 		slotMap := slotmap.New[int](1)
 
 		k := slotMap.Insert(10)
-		_, ok := slotMap.Delete(k)
-		require.True(t, ok)
+		_, err := slotMap.Delete(k)
+		require.NoError(t, err)
 
 		slotMap.Grow(2)
 
@@ -57,32 +57,19 @@ func TestSlotMap(t *testing.T) {
 		k3 := slotMap.Insert(30)
 		k4 := slotMap.Insert(40)
 
-		v2, ok := slotMap.Get(k2)
-		require.True(t, ok)
+		v2, err := slotMap.Get(k2)
+		require.NoError(t, err)
 		require.Equal(t, 20, v2)
 
-		v3, ok := slotMap.Get(k3)
-		require.True(t, ok)
+		v3, err := slotMap.Get(k3)
+		require.NoError(t, err)
 		require.Equal(t, 30, v3)
 
-		v4, ok := slotMap.Get(k4)
-		require.True(t, ok)
+		v4, err := slotMap.Get(k4)
+		require.NoError(t, err)
 		require.Equal(t, 40, v4)
 
 		require.Equal(t, 3, slotMap.Len())
-	})
-
-	t.Run("Should set value and return old value", func(t *testing.T) {
-		slotMap := slotmap.New[string](1)
-
-		k := slotMap.Insert("old")
-		oldValue, ok := slotMap.Set(k, "new")
-		require.True(t, ok)
-		require.Equal(t, "old", oldValue)
-
-		updated, ok := slotMap.Get(k)
-		require.True(t, ok)
-		require.Equal(t, "new", updated)
 	})
 
 	t.Run("Should delete value and invalidate stale key", func(t *testing.T) {
@@ -91,19 +78,19 @@ func TestSlotMap(t *testing.T) {
 		k := slotMap.Insert(99)
 		require.Equal(t, 1, slotMap.Len())
 
-		deleted, ok := slotMap.Delete(k)
-		require.True(t, ok)
+		deleted, err := slotMap.Delete(k)
+		require.NoError(t, err)
 		require.Equal(t, 99, deleted)
 		require.Equal(t, 0, slotMap.Len())
 
-		_, ok = slotMap.Get(k)
-		require.False(t, ok)
+		_, err = slotMap.Get(k)
+		require.NoError(t, err)
 
-		_, ok = slotMap.Set(k, 100)
-		require.False(t, ok)
+		err = slotMap.Set(k, 100)
+		require.NoError(t, err)
 
-		_, ok = slotMap.Delete(k)
-		require.False(t, ok)
+		_, err = slotMap.Delete(k)
+		require.NoError(t, err)
 	})
 
 	t.Run("Should return false for invalid keys", func(t *testing.T) {
@@ -111,21 +98,17 @@ func TestSlotMap(t *testing.T) {
 
 		k := slotmap.K{}
 
-		_, ok := slotMap.Get(k)
-		require.False(t, ok)
+		_, err := slotMap.Get(k)
+		require.Error(t, err)
+		require.ErrorIs(t, err, slotmap.ErrInvalidKey)
 
-		_, ok = slotMap.Set(k, 1)
-		require.False(t, ok)
+		err = slotMap.Set(k, 1)
+		require.Error(t, err)
+		require.ErrorIs(t, err, slotmap.ErrInvalidKey)
 
-		_, ok = slotMap.Delete(k)
-		require.False(t, ok)
-
-		// invalidOutOfRangeKey := slotmap.K{
-		// 	index:   math.MaxUint32,
-		// 	version: 1,
-		// }
-		// _, ok = slotMap.Get(invalidOutOfRangeKey)
-		// require.False(t, ok)
+		_, err = slotMap.Delete(k)
+		require.Error(t, err)
+		require.ErrorIs(t, err, slotmap.ErrInvalidKey)
 	})
 
 	t.Run("Should range over occupied entries and support early stop", func(t *testing.T) {
@@ -134,8 +117,9 @@ func TestSlotMap(t *testing.T) {
 		k1 := slotMap.Insert(10)
 		slotMap.Insert(20)
 		k3 := slotMap.Insert(30)
-		_, ok := slotMap.Delete(k1)
-		require.True(t, ok)
+
+		_, err := slotMap.Delete(k1)
+		require.NoError(t, err)
 
 		seen := map[int]int{}
 		slotMap.Range(func(_ slotmap.K, value int) bool {

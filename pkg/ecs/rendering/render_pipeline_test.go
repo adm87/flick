@@ -18,7 +18,9 @@ var benchSizes = []int{0, 10, 100, 1000, 10000}
 
 type testrenderer struct{}
 
-func (t *testrenderer) Render(*ebiten.Image, *rendering.RenderingCandidate, geom.Rect, ebiten.GeoM) {}
+func (t *testrenderer) Render(*ebiten.Image, *rendering.RenderingCandidate, geom.Rect, ebiten.GeoM) error {
+	return nil
+}
 
 type testSceneView struct{}
 
@@ -31,7 +33,7 @@ func BenchmarkRenderPipeline(b *testing.B) {
 		size := benchSizes[i]
 		b.Run("RenderPipeline/size="+strconv.Itoa(size), func(b *testing.B) {
 			ecs := ecs.NewECS()
-			renderPipeline := rendering.NewRenderPipeline(ecs, &testSceneView{}, logger.NewLogger(b.Output()))
+			renderPipeline := rendering.NewECSRenderPipeline(ecs, &testSceneView{}, logger.NewLogger(b.Output()))
 			renderer := renderPipeline.RegisterRenderer(&testrenderer{})
 			createBenchmarkEntities(ecs.World(), size, renderer)
 

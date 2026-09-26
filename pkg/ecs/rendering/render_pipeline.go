@@ -15,13 +15,16 @@ import (
 	"github.com/yohamta/donburi/filter"
 )
 
-var ErrViewportNotValid = errors.New("viewport is not valid")
+var (
+	ErrViewportNotValid = errors.New("viewport is not valid")
+	ErrRenderingError   = errors.New("render pipeline error")
+)
 
 type View interface {
 	GetView() (geom.Rect, ebiten.GeoM)
 }
 
-type RenderPipeline struct {
+type ECSRenderPipeline struct {
 	ecs            *ecs.ECS
 	query          *donburi.Query
 	renderers      *slotmap.SlotMap[Renderer]
@@ -30,8 +33,8 @@ type RenderPipeline struct {
 	logger         logger.Logger
 }
 
-func NewRenderPipeline(ecs *ecs.ECS, view View, log logger.Logger) *RenderPipeline {
-	rp := &RenderPipeline{
+func NewECSRenderPipeline(ecs *ecs.ECS, view View, log logger.Logger) *ECSRenderPipeline {
+	rp := &ECSRenderPipeline{
 		ecs: ecs,
 		query: donburi.NewQuery(
 			filter.Contains(
@@ -41,17 +44,17 @@ func NewRenderPipeline(ecs *ecs.ECS, view View, log logger.Logger) *RenderPipeli
 		renderers:      slotmap.New[Renderer](10),
 		renderingQueue: NewRenderingQueue(),
 		view:           view,
-		logger:         log.With(logger.String("system", "ecs_render_pipeline")),
+		logger:         log.With(logger.String("source", "RenderPipeline")),
 	}
 	return rp
 }
 
-func (rp *RenderPipeline) RegisterRenderer(renderer Renderer) uint64 {
+func (rp *ECSRenderPipeline) RegisterRenderer(renderer Renderer) RendererK {
 	k := rp.renderers.Insert(renderer)
 	return k.Pack()
 }
 
-func (rp *RenderPipeline) Draw(target *ebiten.Image) error {
+func (rp *ECSRenderPipeline) Draw(target *ebiten.Image) error {
 	viewport, viewmatrix := rp.view.GetView()
 	if !(viewport.Area() > 0) {
 		return fmt.Errorf("%w: %v", ErrViewportNotValid, viewport)
@@ -75,13 +78,27 @@ func (rp *RenderPipeline) Draw(target *ebiten.Image) error {
 	candidates := rp.renderingQueue.Candidates()
 	keys := rp.renderingQueue.sortedKeys()
 
+	var errs []error
+
+	// TODO: Replace with rendering jobs for batching
 	for i := range keys {
 		rc := &candidates[keys[i].index()]
-
 		k := slotmap.Unpack(rc.Renderable.Renderer())
-		if renderer, ok := rp.renderers.Get(k); ok {
-			renderer.Render(target, rc, viewport, viewmatrix)
+
+		renderer, err := rp.renderers.Get(k)
+		if err != nil {
+			errs = append(errs, err)
+			continue
+		}
+
+		if err := renderer.Render(target, rc, viewport, viewmatrix); err != nil {
+			errs = append(errs, err)
 		}
 	}
+
+	if len(errs) > 0 {
+		return fmt.Errorf("%w: %w", ErrRenderingError, errors.Join(errs...))
+	}
+
 	return nil
 }

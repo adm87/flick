@@ -7,6 +7,8 @@ import (
 	"github.com/yohamta/donburi"
 )
 
+// View represents a camera view in the game world. It manages the camera's position and transformation,
+// and provides methods to convert between world and screen coordinates.
 type View struct {
 	world donburi.World
 	entry *donburi.Entry
@@ -25,7 +27,7 @@ func (v *View) SetCamera(entry *donburi.Entry) {
 // GetView retrieves the viewport and view matrix for the current camera.
 // It returns zero values if no camera is set or if the camera does not have a valid transform.
 func (v *View) GetView() (viewport geom.Rect, viewmatrix ebiten.GeoM) {
-	if v.entry == nil {
+	if v.entry == nil || !v.entry.Valid() {
 		return
 	}
 

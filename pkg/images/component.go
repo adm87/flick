@@ -3,13 +3,14 @@ package images
 import (
 	"image/color"
 
+	"github.com/adm87/flick/pkg/resources"
 	"github.com/yohamta/donburi"
 )
 
 type ImageModel struct {
-	reference uint64
-	frame     int
-	color     color.RGBA
+	handle resources.ResourceHandle
+	frame  int
+	color  color.RGBA
 }
 
 var ImageComponent = donburi.NewComponentType[ImageModel](ImageModel{
@@ -23,18 +24,26 @@ func GetImage(entry *donburi.Entry) (*ImageModel, bool) {
 	return nil, false
 }
 
-func (i *ImageModel) Reference() uint64 {
-	return i.reference
-}
-
-func (i *ImageModel) SetReference(reference uint64) {
-	i.reference = reference
-}
-
 func (i *ImageModel) Color() color.RGBA {
 	return i.color
 }
 
 func (i *ImageModel) SetColor(color color.RGBA) {
 	i.color = color
+}
+
+func (i *ImageModel) Frame() int {
+	return i.frame
+}
+
+func (i *ImageModel) SetFrame(frame int) {
+	i.frame = frame
+}
+
+func (i *ImageModel) Handle() resources.ResourceHandle {
+	return i.handle
+}
+
+func (i *ImageModel) SetHandle(handle resources.ResourceHandle) {
+	i.handle = handle
 }

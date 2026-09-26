@@ -50,6 +50,7 @@ func Run(opts ...RunOption) error {
 	ebiten.SetWindowTitle(options.WindowTitle)
 	ebiten.SetWindowSize(options.WindowWidth, options.WindowHeight)
 	ebiten.SetFullscreen(options.Fullscreen)
+	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()

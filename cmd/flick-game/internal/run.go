@@ -3,9 +3,12 @@ package internal
 import (
 	"math/rand"
 	"os"
+	"path/filepath"
 
 	"github.com/adm87/flick/cmd/flick-game/internal/game"
-	"github.com/adm87/flick/cmd/flick-game/internal/models"
+	"github.com/adm87/flick/content"
+	"github.com/adm87/flick/pkg/assert"
+	"github.com/adm87/flick/pkg/data"
 	"github.com/adm87/flick/pkg/ecs"
 	"github.com/adm87/flick/pkg/ecs/components/camera"
 	"github.com/adm87/flick/pkg/ecs/components/renderable"
@@ -14,29 +17,99 @@ import (
 	"github.com/adm87/flick/pkg/engine"
 	"github.com/adm87/flick/pkg/images"
 	"github.com/adm87/flick/pkg/logger"
-)
-
-const (
-	count = 100
-
-	screenWidth  = 800
-	screenHeight = 600
+	"github.com/adm87/flick/pkg/resources"
+	"github.com/yohamta/donburi"
 )
 
 func Run() error {
-	ecs := ecs.NewECS()
-	world := ecs.World()
-	view := game.NewView(world)
 	log := logger.NewLogger(os.Stdout)
-	renderPipeline := rendering.NewRenderPipeline(ecs, view, log)
+	res := resources.NewResources(log)
 
-	gameModel := &models.GameModel{
-		Renderers: models.Renderers{
-			ImageRenderer: renderPipeline.RegisterRenderer(images.NewImageRenderer()),
+	dataStore := data.NewDataStore()
+	dataImporter := data.NewDataImporter(dataStore)
+	res.RegisterImporter(dataImporter, data.DataTypes())
+
+	imageStore := images.NewImageStore()
+	imageImporter := images.NewImageImporter(imageStore)
+	imageRenderer := images.NewImageRenderer(imageStore)
+	res.RegisterImporter(imageImporter, images.ImageTypes())
+
+	cfg, err := loadConfig(res, dataStore)
+	assert.NoError(err)
+
+	ecs := ecs.NewECS()
+	view := game.NewView(ecs.World())
+	screen := game.NewScreen(cfg.Window.Width, cfg.Window.Height, log)
+	rp := rendering.NewECSRenderPipeline(ecs, view, log)
+	draw := game.NewDrawer(screen, rp)
+
+	gameModel := &game.Model{
+		Config: cfg,
+		Renderers: &game.Renderers{
+			ImageRendererID: rp.RegisterRenderer(imageRenderer),
 		},
 	}
 
-	entities := world.CreateMany(count,
+	gameAssets := &game.Assets{
+		Resources: res,
+		Data:      dataStore,
+		Images:    imageStore,
+	}
+
+	// Temporary test scene setup
+	setupTestScene(ecs.World(), res, gameModel, view, gameAssets)
+
+	return engine.Run(
+		engine.WithLogger(log),
+		engine.WithWindowSize(
+			cfg.Window.Width,
+			cfg.Window.Height,
+		),
+		engine.WithFullscreen(cfg.Window.Fullscreen),
+		engine.WithDraw(draw),
+		engine.WithLayout(screen),
+	)
+}
+
+func loadConfig(res *resources.Resources, store *data.DataStore) (*game.Config, error) {
+	err := res.Load(content.EmbeddedFS(), content.ConfResourcePath)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		err := res.Unload(content.ConfResourcePath)
+		assert.NoError(err)
+	}()
+
+	handle, err := res.GetHandle(content.ConfResourcePath)
+	if err != nil {
+		return nil, err
+	}
+
+	raw, err := store.Get(handle)
+	if err != nil {
+		return nil, err
+	}
+
+	return game.NewConfig(raw)
+}
+
+func setupTestScene(world donburi.World, res *resources.Resources, gameModel *game.Model, view *game.View, _ *game.Assets) {
+	const TestImage resources.ResourcePath = "tile_0105.png"
+
+	path, err := filepath.Abs("../../content")
+	assert.NoError(err)
+
+	testFS := os.DirFS(path + "/resources")
+
+	err = res.Load(testFS, TestImage)
+	assert.NoError(err)
+
+	handle, err := res.GetHandle(TestImage)
+	assert.NoError(err)
+
+	entities := world.CreateMany(100,
 		transform.BoundsComponent,
 		transform.MatrixComponent,
 		transform.TransformComponent,
@@ -49,32 +122,33 @@ func Run() error {
 
 		tr, _ := transform.GetTransform(entry)
 		tr.SetPosition(
-			rand.Float64()*800,
-			rand.Float64()*600,
+			rand.Float64()*float64(gameModel.Config.Window.Width),
+			rand.Float64()*float64(gameModel.Config.Window.Height),
 		)
 
 		b, _ := transform.GetBounds(entry)
 		b.SetSize(20, 20)
 
 		r, _ := renderable.GetRenderable(entry)
-		r.SetRenderer(gameModel.Renderers.ImageRenderer)
+		r.SetRenderer(gameModel.Renderers.ImageRendererID)
+
+		img, _ := images.GetImage(entry)
+		img.SetHandle(handle)
 	}
 
 	camEntry := world.Entry(world.Create(
 		camera.CameraComponent,
 		camera.MainCamera,
+		transform.TransformComponent,
 		transform.MatrixComponent,
 		transform.BoundsComponent,
 	))
 
 	b, _ := transform.GetBounds(camEntry)
-	b.SetSize(screenWidth, screenHeight)
+	b.SetSize(
+		float64(gameModel.Config.Window.Width),
+		float64(gameModel.Config.Window.Height),
+	)
 
 	view.SetCamera(camEntry)
-
-	return engine.Run(
-		engine.WithLogger(log),
-		engine.WithWindowSize(screenWidth, screenHeight),
-		engine.WithDraw(renderPipeline),
-	)
 }
