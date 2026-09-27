@@ -15,8 +15,10 @@ var (
 	ErrDuplicateImporterRegister = errors.New("duplicate importer register")
 )
 
+// ResourceHandle is a unique identifier for a loaded resource.
 type ResourceHandle = uint64
 
+// ResourcePath represents the path to a resource file.
 type ResourcePath string
 
 func (rp ResourcePath) String() string {
@@ -28,6 +30,7 @@ func (rp ResourcePath) Ext() string {
 	return strings.ToLower(ext)
 }
 
+// ResourceType represents the type of a resource, typically determined by its file extension.
 type ResourceType string
 
 func (rt ResourceType) String() string {
@@ -38,6 +41,9 @@ func (rt ResourceType) IsEmpty() bool {
 	return rt == ""
 }
 
+// Resources manages the loading, unloading, and access to various types of resources using registered importers.
+//
+// Rough first pass at a resource management system. Concurrent loading needs revisiting.
 type Resources struct {
 	logger    logger.Logger
 	importers map[ResourceType]ResourceImporter
@@ -53,6 +59,7 @@ func NewResources(log logger.Logger) *Resources {
 	}
 }
 
+// GetHandle retrieves the handle for the given resource path, returning an error if the resource is not found.
 func (r *Resources) GetHandle(path ResourcePath) (ResourceHandle, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -63,6 +70,7 @@ func (r *Resources) GetHandle(path ResourcePath) (ResourceHandle, error) {
 	return handle, nil
 }
 
+// RegisterImporter registers a resource importer for the specified resource types. Returns an error if any of the resource types are already registered.
 func (r *Resources) RegisterImporter(importer ResourceImporter, resourceTypes []ResourceType) error {
 	if importer == nil {
 		return nil
@@ -91,12 +99,14 @@ func (r *Resources) RegisterImporter(importer ResourceImporter, resourceTypes []
 	return nil
 }
 
+// Load loads the specified resource files from the given filesystem. Returns an error if any resource fails to load.
 func (r *Resources) Load(filesystem fs.FS, paths ...ResourcePath) error {
 	return r.runOperation(paths, func(path ResourcePath) error {
 		return r.loadResource(filesystem, path)
 	})
 }
 
+// Unload unloads the specified resources. Returns an error if any resource fails to unload.
 func (r *Resources) Unload(paths ...ResourcePath) error {
 	return r.runOperation(paths, r.unloadResource)
 }

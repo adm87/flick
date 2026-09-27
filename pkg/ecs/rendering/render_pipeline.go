@@ -78,6 +78,8 @@ func (rp *ECSRenderPipeline) Draw(target *ebiten.Image) error {
 	candidates := rp.renderingQueue.Candidates()
 	keys := rp.renderingQueue.sortedKeys()
 
+	println(len(candidates))
+
 	var errs []error
 
 	// TODO: Replace with rendering jobs for batching

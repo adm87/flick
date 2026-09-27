@@ -8,6 +8,9 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+// shell represents the core game loop shell, managing update, draw, layout, and shutdown operations.
+//
+// Might be overkill for simple games, but provides a structured approach to managing the game loop.
 type shell struct {
 	ctx      context.Context
 	update   GameUpdate

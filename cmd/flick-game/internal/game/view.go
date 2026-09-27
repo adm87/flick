@@ -10,13 +10,15 @@ import (
 // View represents a camera view in the game world. It manages the camera's position and transformation,
 // and provides methods to convert between world and screen coordinates.
 type View struct {
-	world donburi.World
-	entry *donburi.Entry
+	world  donburi.World
+	entry  *donburi.Entry
+	screen *Screen
 }
 
-func NewView(world donburi.World) *View {
+func NewView(world donburi.World, screen *Screen) *View {
 	return &View{
-		world: world,
+		world:  world,
+		screen: screen,
 	}
 }
 
@@ -31,23 +33,26 @@ func (v *View) GetView() (viewport geom.Rect, viewmatrix ebiten.GeoM) {
 		return
 	}
 
-	bounds, ok := transform.GetBounds(v.entry)
-	if !ok {
-		return
-	}
 	matrix := transform.GetMatrix(v.entry)
+	safeArea := v.screen.SafeArea()
 
-	x0, y0 := bounds.Rect.X, bounds.Rect.Y
-	x1, y1 := x0+bounds.Rect.Width, y0+bounds.Rect.Height
+	minX, minY := safeArea.Min()
+	maxX, maxY := safeArea.Max()
 
-	ax, ay := matrix.Apply(x0, y0)
-	bx, by := matrix.Apply(x1, y0)
-	cx, cy := matrix.Apply(x0, y1)
-	dx, dy := matrix.Apply(x1, y1)
+	ax, ay := matrix.Apply(minX, minY)
+	bx, by := matrix.Apply(maxX, minY)
+	cx, cy := matrix.Apply(minX, maxY)
+	dx, dy := matrix.Apply(maxX, maxY)
 
-	minX, maxX := min(ax, bx, cx, dx), max(ax, bx, cx, dx)
-	minY, maxY := min(ay, by, cy, dy), max(ay, by, cy, dy)
-	viewport = geom.Rect{X: minX, Y: minY, Width: maxX - minX, Height: maxY - minY}
+	vMinX, vMaxX := min(ax, bx, cx, dx), max(ax, bx, cx, dx)
+	vMinY, vMaxY := min(ay, by, cy, dy), max(ay, by, cy, dy)
+
+	viewport = geom.Rect{
+		X:      vMinX,
+		Y:      vMinY,
+		Width:  vMaxX - vMinX,
+		Height: vMaxY - vMinY,
+	}
 
 	viewmatrix = matrix
 	viewmatrix.Invert()
@@ -61,7 +66,6 @@ func (v *View) WorldToScreen(x, y float64) (cx, cy float64) {
 		return
 	}
 	_, viewmatrix := v.GetView()
-	viewmatrix.Invert()
 	return viewmatrix.Apply(x, y)
 }
 
@@ -72,5 +76,6 @@ func (v *View) ScreenToWorld(x, y float64) (wx, wy float64) {
 		return
 	}
 	_, viewmatrix := v.GetView()
+	viewmatrix.Invert()
 	return viewmatrix.Apply(x, y)
 }

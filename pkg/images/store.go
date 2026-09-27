@@ -75,11 +75,11 @@ func (is *ImageStore) GetFrame(handle resources.ResourceHandle, frame int) (*ebi
 }
 
 func (is *ImageStore) SliceFramesUniform(handle resources.ResourceHandle, frameWidth, frameHeight int) {
-
+	// TODO: Implement slicing the main image into uniform frames based on the specified frame width and height.
 }
 
 func (is *ImageStore) SliceFrames(handle resources.ResourceHandle, frames []image.Rectangle) {
-
+	// TODO: Implement slicing the main image into frames based on the specified rectangles.
 }
 
 func (is *ImageStore) ClearFrames(handle resources.ResourceHandle) {

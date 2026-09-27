@@ -38,10 +38,11 @@ func Run() error {
 	assert.NoError(err)
 
 	ecs := ecs.NewECS()
-	view := game.NewView(ecs.World())
 	screen := game.NewScreen(cfg.Window.Width, cfg.Window.Height, log)
+	view := game.NewView(ecs.World(), screen)
 	rp := rendering.NewECSRenderPipeline(ecs, view, log)
-	draw := game.NewDrawer(screen, rp)
+	draw := game.NewDrawer(screen, view, ecs.World(), rp)
+	update := game.NewUpdater(ecs.World())
 
 	gameModel := &game.Model{
 		Config: cfg,
@@ -66,6 +67,7 @@ func Run() error {
 			cfg.Window.Height,
 		),
 		engine.WithFullscreen(cfg.Window.Fullscreen),
+		engine.WithUpdate(update),
 		engine.WithDraw(draw),
 		engine.WithLayout(screen),
 	)
@@ -95,7 +97,7 @@ func loadConfig(res *resources.Resources, store *data.DataStore) (*game.Config, 
 	return game.NewConfig(raw)
 }
 
-func setupTestScene(world donburi.World, res *resources.Resources, gameModel *game.Model, view *game.View, _ *game.Assets) {
+func setupTestScene(world donburi.World, res *resources.Resources, gameModel *game.Model, view *game.View, assets *game.Assets) {
 	const TestImage resources.ResourcePath = "tile_0105.png"
 
 	path, err := filepath.Abs("../../content")
@@ -107,6 +109,9 @@ func setupTestScene(world donburi.World, res *resources.Resources, gameModel *ga
 	assert.NoError(err)
 
 	handle, err := res.GetHandle(TestImage)
+	assert.NoError(err)
+
+	image, err := assets.Images.Get(handle)
 	assert.NoError(err)
 
 	entities := world.CreateMany(100,
@@ -127,7 +132,10 @@ func setupTestScene(world donburi.World, res *resources.Resources, gameModel *ga
 		)
 
 		b, _ := transform.GetBounds(entry)
-		b.SetSize(20, 20)
+		b.SetSize(
+			float64(image.Bounds().Dx()),
+			float64(image.Bounds().Dy()),
+		)
 
 		r, _ := renderable.GetRenderable(entry)
 		r.SetRenderer(gameModel.Renderers.ImageRendererID)
@@ -137,18 +145,17 @@ func setupTestScene(world donburi.World, res *resources.Resources, gameModel *ga
 	}
 
 	camEntry := world.Entry(world.Create(
-		camera.CameraComponent,
 		camera.MainCamera,
 		transform.TransformComponent,
 		transform.MatrixComponent,
-		transform.BoundsComponent,
 	))
 
-	b, _ := transform.GetBounds(camEntry)
-	b.SetSize(
-		float64(gameModel.Config.Window.Width),
-		float64(gameModel.Config.Window.Height),
-	)
+	x, y := float64(gameModel.Config.Window.Width)/2, float64(gameModel.Config.Window.Height)/2
+
+	c, _ := transform.GetTransform(camEntry)
+	c.SetOrigin(x, y)   // Set the origin of the camera to the center of the window
+	c.SetPosition(x, y) // Move the camera to the center of the window
+	c.SetScale(2, 2)
 
 	view.SetCamera(camEntry)
 }
