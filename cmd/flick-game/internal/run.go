@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"math/rand"
 	"os"
 	"path/filepath"
 
@@ -15,6 +14,7 @@ import (
 	"github.com/adm87/flick/pkg/ecs/components/transform"
 	"github.com/adm87/flick/pkg/ecs/rendering"
 	"github.com/adm87/flick/pkg/engine"
+	"github.com/adm87/flick/pkg/geom"
 	"github.com/adm87/flick/pkg/images"
 	"github.com/adm87/flick/pkg/logger"
 	"github.com/adm87/flick/pkg/resources"
@@ -39,7 +39,7 @@ func Run() error {
 
 	ecs := ecs.NewECS()
 	screen := game.NewScreen(cfg.Window.Width, cfg.Window.Height, log)
-	view := game.NewView(ecs.World(), screen)
+	view := game.NewView(screen)
 	rp := rendering.NewECSRenderPipeline(ecs, view, log)
 	draw := game.NewDrawer(screen, view, ecs.World(), rp)
 	update := game.NewUpdater(ecs.World())
@@ -114,7 +114,7 @@ func setupTestScene(world donburi.World, res *resources.Resources, gameModel *ga
 	image, err := assets.Images.Get(handle)
 	assert.NoError(err)
 
-	entities := world.CreateMany(100,
+	entities := world.CreateMany(1,
 		transform.BoundsComponent,
 		transform.MatrixComponent,
 		transform.TransformComponent,
@@ -124,12 +124,6 @@ func setupTestScene(world donburi.World, res *resources.Resources, gameModel *ga
 
 	for i := range entities {
 		entry := world.Entry(entities[i])
-
-		tr, _ := transform.GetTransform(entry)
-		tr.SetPosition(
-			rand.Float64()*float64(gameModel.Config.Window.Width),
-			rand.Float64()*float64(gameModel.Config.Window.Height),
-		)
 
 		b, _ := transform.GetBounds(entry)
 		b.SetSize(
@@ -142,6 +136,7 @@ func setupTestScene(world donburi.World, res *resources.Resources, gameModel *ga
 
 		img, _ := images.GetImage(entry)
 		img.SetHandle(handle)
+		img.SetAnchor(geom.Vec2{X: 0.5, Y: 1.0})
 	}
 
 	camEntry := world.Entry(world.Create(

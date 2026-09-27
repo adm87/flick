@@ -16,7 +16,6 @@ type ImageRenderer struct {
 	store       *ImageStore
 	drawOptions *ebiten.DrawImageOptions
 	missing     *ebiten.Image
-	identity    ebiten.GeoM
 }
 
 func NewImageRenderer(store *ImageStore) *ImageRenderer {
@@ -27,17 +26,12 @@ func NewImageRenderer(store *ImageStore) *ImageRenderer {
 		store:       store,
 		missing:     missing,
 		drawOptions: &ebiten.DrawImageOptions{},
-		identity:    ebiten.GeoM{},
 	}
 }
 
-func (ir *ImageRenderer) Render(target *ebiten.Image, candidate rendering.RenderingCandidate, viewport geom.Rect, viewmatrix ebiten.GeoM) error {
+func (ir *ImageRenderer) Render(target *ebiten.Image, candidate rendering.RenderingCandidate, _ geom.Rect, viewmatrix ebiten.GeoM) error {
 	var renderErr error
-
-	m := transform.GetMatrix(candidate.Entry)
-
-	ir.drawOptions.GeoM = m
-	ir.drawOptions.GeoM.Concat(viewmatrix)
+	var anchor geom.Vec2
 
 	ir.drawOptions.ColorScale.Reset()
 
@@ -45,6 +39,7 @@ func (ir *ImageRenderer) Render(target *ebiten.Image, candidate rendering.Render
 
 	if img, ok := GetImage(candidate.Entry); ok {
 		ir.drawOptions.ColorScale.ScaleWithColor(img.color)
+		anchor = img.anchor
 
 		if tex, err := ir.store.GetFrame(img.handle, img.frame); err != nil {
 			renderErr = fmt.Errorf("%w: handle: %v, frame: %v: %w", ErrImageRenderer, img.handle, img.frame, err)
@@ -52,6 +47,18 @@ func (ir *ImageRenderer) Render(target *ebiten.Image, candidate rendering.Render
 			texture = tex
 		}
 	}
+
+	m := transform.GetMatrix(candidate.Entry)
+
+	ir.drawOptions.GeoM.Reset()
+	if anchor != (geom.Vec2{}) {
+		ir.drawOptions.GeoM.Translate(
+			-anchor.X*float64(texture.Bounds().Dx()),
+			-anchor.Y*float64(texture.Bounds().Dy()),
+		)
+	}
+	ir.drawOptions.GeoM.Concat(m)
+	ir.drawOptions.GeoM.Concat(viewmatrix)
 
 	target.DrawImage(texture, ir.drawOptions)
 	return renderErr

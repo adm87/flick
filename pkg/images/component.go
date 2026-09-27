@@ -3,6 +3,7 @@ package images
 import (
 	"image/color"
 
+	"github.com/adm87/flick/pkg/geom"
 	"github.com/adm87/flick/pkg/resources"
 	"github.com/yohamta/donburi"
 )
@@ -11,6 +12,7 @@ type ImageModel struct {
 	handle resources.ResourceHandle
 	frame  int
 	color  color.RGBA
+	anchor geom.Vec2
 }
 
 var ImageComponent = donburi.NewComponentType[ImageModel](ImageModel{
@@ -46,4 +48,12 @@ func (i *ImageModel) Handle() resources.ResourceHandle {
 
 func (i *ImageModel) SetHandle(handle resources.ResourceHandle) {
 	i.handle = handle
+}
+
+func (i *ImageModel) Anchor() geom.Vec2 {
+	return i.anchor
+}
+
+func (i *ImageModel) SetAnchor(anchor geom.Vec2) {
+	i.anchor = anchor
 }

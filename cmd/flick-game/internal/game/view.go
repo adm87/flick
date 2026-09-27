@@ -10,14 +10,12 @@ import (
 // View represents a camera view in the game world. It manages the camera's position and transformation,
 // and provides methods to convert between world and screen coordinates.
 type View struct {
-	world  donburi.World
 	entry  *donburi.Entry
 	screen *Screen
 }
 
-func NewView(world donburi.World, screen *Screen) *View {
+func NewView(screen *Screen) *View {
 	return &View{
-		world:  world,
 		screen: screen,
 	}
 }
@@ -64,14 +62,12 @@ func (v *View) GetView() (viewport geom.Rect, viewmatrix ebiten.GeoM) {
 }
 
 // WorldToScreen converts world coordinates to screen coordinates using the current camera.
-// It returns zero values if no camera is set or if the camera does not have a valid transform.
 func (v *View) WorldToScreen(x, y float64) (cx, cy float64) {
 	_, matrix := v.GetView()
 	return matrix.Apply(x, y)
 }
 
 // ScreenToWorld converts screen coordinates to world coordinates using the current camera.
-// It returns zero values if no camera is set or if the camera does not have a valid transform.
 func (v *View) ScreenToWorld(x, y float64) (wx, wy float64) {
 	if v.entry == nil || !v.entry.Valid() {
 		return
