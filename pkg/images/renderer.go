@@ -31,7 +31,7 @@ func NewImageRenderer(store *ImageStore) *ImageRenderer {
 	}
 }
 
-func (ir *ImageRenderer) Render(target *ebiten.Image, candidate *rendering.RenderingCandidate, viewport geom.Rect, viewmatrix ebiten.GeoM) error {
+func (ir *ImageRenderer) Render(target *ebiten.Image, candidate rendering.RenderingCandidate, viewport geom.Rect, viewmatrix ebiten.GeoM) error {
 	var renderErr error
 
 	m := transform.GetMatrix(candidate.Entry)

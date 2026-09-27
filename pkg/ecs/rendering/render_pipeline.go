@@ -84,7 +84,7 @@ func (rp *ECSRenderPipeline) Draw(target *ebiten.Image) error {
 
 	// TODO: Replace with rendering jobs for batching
 	for i := range keys {
-		rc := &candidates[keys[i].index()]
+		rc := candidates[keys[i].index()]
 		k := slotmap.Unpack(rc.Renderable.Renderer())
 
 		renderer, err := rp.renderers.Get(k)

@@ -18,7 +18,7 @@ var benchSizes = []int{0, 10, 100, 1000, 10000}
 
 type testrenderer struct{}
 
-func (t *testrenderer) Render(*ebiten.Image, *rendering.RenderingCandidate, geom.Rect, ebiten.GeoM) error {
+func (t *testrenderer) Render(*ebiten.Image, rendering.RenderingCandidate, geom.Rect, ebiten.GeoM) error {
 	return nil
 }
 

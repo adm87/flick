@@ -41,7 +41,7 @@ func (rt ResourceType) IsEmpty() bool {
 	return rt == ""
 }
 
-// Resources manages the loading, unloading, and access to various types of resources using registered importers.
+// Resources manages the loading, unloading, and support for importing various types of resources.
 //
 // Rough first pass at a resource management system. Concurrent loading needs revisiting.
 type Resources struct {
