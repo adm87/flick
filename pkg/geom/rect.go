@@ -19,6 +19,10 @@ func (r Rect) Max() (float64, float64) {
 	return r.X + r.Width, r.Y + r.Height
 }
 
+func (r Rect) Center() (float64, float64) {
+	return r.X + r.Width*0.5, r.Y + r.Height*0.5
+}
+
 func (r Rect) Area() float64 {
 	return r.Width * r.Height
 }

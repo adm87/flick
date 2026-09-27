@@ -150,12 +150,5 @@ func setupTestScene(world donburi.World, res *resources.Resources, gameModel *ga
 		transform.MatrixComponent,
 	))
 
-	x, y := float64(gameModel.Config.Window.Width)/2, float64(gameModel.Config.Window.Height)/2
-
-	c, _ := transform.GetTransform(camEntry)
-	c.SetOrigin(x, y)   // Set the origin of the camera to the center of the window
-	c.SetPosition(x, y) // Move the camera to the center of the window
-	c.SetScale(2, 2)
-
 	view.SetCamera(camEntry)
 }

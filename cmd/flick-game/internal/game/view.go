@@ -33,8 +33,12 @@ func (v *View) GetView() (viewport geom.Rect, viewmatrix ebiten.GeoM) {
 		return
 	}
 
-	matrix := transform.GetMatrix(v.entry)
 	safeArea := v.screen.SafeArea()
+
+	tr, _ := transform.GetTransform(v.entry)
+	tr.SetOrigin(safeArea.Center())
+
+	matrix := transform.GetTransformMatrix(v.entry, tr)
 
 	minX, minY := safeArea.Min()
 	maxX, maxY := safeArea.Max()
@@ -62,20 +66,16 @@ func (v *View) GetView() (viewport geom.Rect, viewmatrix ebiten.GeoM) {
 // WorldToScreen converts world coordinates to screen coordinates using the current camera.
 // It returns zero values if no camera is set or if the camera does not have a valid transform.
 func (v *View) WorldToScreen(x, y float64) (cx, cy float64) {
-	if v.entry == nil {
-		return
-	}
-	_, viewmatrix := v.GetView()
-	return viewmatrix.Apply(x, y)
+	_, matrix := v.GetView()
+	return matrix.Apply(x, y)
 }
 
 // ScreenToWorld converts screen coordinates to world coordinates using the current camera.
 // It returns zero values if no camera is set or if the camera does not have a valid transform.
 func (v *View) ScreenToWorld(x, y float64) (wx, wy float64) {
-	if v.entry == nil {
+	if v.entry == nil || !v.entry.Valid() {
 		return
 	}
-	_, viewmatrix := v.GetView()
-	viewmatrix.Invert()
-	return viewmatrix.Apply(x, y)
+	matrix := transform.GetMatrix(v.entry)
+	return matrix.Apply(x, y)
 }

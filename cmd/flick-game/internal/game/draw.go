@@ -28,10 +28,11 @@ func (d *Drawer) Draw(target *ebiten.Image) error {
 	d.screen.buffer.Clear()
 
 	err := d.drawer.Draw(d.screen.buffer)
-	target.DrawImage(d.screen.buffer, d.screen.options)
 
 	x, y := d.view.WorldToScreen(0, 0)
-	ebitenutil.DebugPrintAt(target, "0, 0", int(x), int(y))
+	ebitenutil.DebugPrintAt(d.screen.buffer, "0, 0", int(x), int(y))
+
+	target.DrawImage(d.screen.buffer, d.screen.options)
 
 	return err
 }
