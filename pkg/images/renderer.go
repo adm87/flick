@@ -6,7 +6,7 @@ import (
 
 	"github.com/adm87/flick/pkg/ecs/components/transform"
 	"github.com/adm87/flick/pkg/ecs/rendering"
-	"github.com/adm87/flick/pkg/geom"
+	"github.com/adm87/flick/pkg/types/geom"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 

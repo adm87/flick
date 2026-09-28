@@ -24,6 +24,7 @@ type RunOptions struct {
 	WindowTitle               string
 	WindowWidth, WindowHeight int
 	FPS                       int
+	CursorMode                int
 	Fullscreen                bool
 }
 
@@ -40,6 +41,7 @@ func Run(opts ...RunOption) error {
 		WindowWidth:  800,
 		WindowHeight: 600,
 		FPS:          60,
+		CursorMode:   0,
 		Fullscreen:   false,
 	}
 
@@ -51,6 +53,7 @@ func Run(opts ...RunOption) error {
 	ebiten.SetWindowSize(options.WindowWidth, options.WindowHeight)
 	ebiten.SetFullscreen(options.Fullscreen)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+	ebiten.SetCursorMode(ebiten.CursorModeType(options.CursorMode))
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
@@ -97,6 +100,12 @@ func WithWindowSize(width, height int) RunOption {
 func WithFPS(fps int) RunOption {
 	return func(opts *RunOptions) {
 		opts.FPS = fps
+	}
+}
+
+func WithCursorMode(cursorMode int) RunOption {
+	return func(opts *RunOptions) {
+		opts.CursorMode = cursorMode
 	}
 }
 

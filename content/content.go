@@ -1,16 +1,9 @@
 package content
 
-import (
-	"embed"
+import _ "embed"
 
-	"github.com/adm87/flick/pkg/resources"
-)
+//go:embed embedded/game.yaml
+var GameConfig []byte
 
-const ConfResourcePath resources.ResourcePath = "embedded/conf.yaml"
-
-//go:embed embedded
-var embeddedFS embed.FS
-
-func EmbeddedFS() embed.FS {
-	return embeddedFS
-}
+//go:embed embedded/aseprite.yaml
+var AsepriteConfig []byte

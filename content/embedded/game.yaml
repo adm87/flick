@@ -1,0 +1,8 @@
+resource_directory: content/resources
+
+cursor_mode: 1 # 0 = visible, 1 = hidden, 2 = captured
+
+window:
+  width: 1280
+  height: 720
+  fullscreen: true

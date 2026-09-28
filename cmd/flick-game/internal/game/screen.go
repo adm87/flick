@@ -3,8 +3,7 @@ package game
 import (
 	"math"
 
-	"github.com/adm87/flick/pkg/geom"
-	"github.com/adm87/flick/pkg/logger"
+	"github.com/adm87/flick/pkg/types/geom"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -12,7 +11,6 @@ import (
 type Screen struct {
 	buffer  *ebiten.Image
 	options *ebiten.DrawImageOptions
-	logger  logger.Logger
 
 	safeArea geom.Rect
 
@@ -22,7 +20,7 @@ type Screen struct {
 	oldHeight int
 }
 
-func NewScreen(width, height int, log logger.Logger) *Screen {
+func NewScreen(width, height int) *Screen {
 	return &Screen{
 		buffer:  ebiten.NewImage(width, height),
 		options: &ebiten.DrawImageOptions{},
@@ -32,7 +30,6 @@ func NewScreen(width, height int, log logger.Logger) *Screen {
 			Width:  float64(width),
 			Height: float64(height),
 		},
-		logger:  log,
 		isDirty: true,
 	}
 }

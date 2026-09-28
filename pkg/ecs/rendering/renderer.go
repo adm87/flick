@@ -1,7 +1,7 @@
 package rendering
 
 import (
-	"github.com/adm87/flick/pkg/geom"
+	"github.com/adm87/flick/pkg/types/geom"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 

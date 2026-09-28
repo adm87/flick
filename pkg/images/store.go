@@ -5,7 +5,7 @@ import (
 	"image"
 
 	"github.com/adm87/flick/pkg/resources"
-	"github.com/adm87/flick/pkg/structures/slotmap"
+	"github.com/adm87/flick/pkg/types/structures/slotmap"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -74,14 +74,43 @@ func (is *ImageStore) GetFrame(handle resources.ResourceHandle, frame int) (*ebi
 	return is.Get(handle)
 }
 
+// SliceFramesUniform slices the main image into uniform frames based on the specified frame width and height.
 func (is *ImageStore) SliceFramesUniform(handle resources.ResourceHandle, frameWidth, frameHeight int) {
-	// TODO: Implement slicing the main image into uniform frames based on the specified frame width and height.
+	img, err := is.Get(handle)
+	if err != nil {
+		return
+	}
+
+	bounds := img.Bounds()
+	var frames []image.Rectangle
+	for y := bounds.Min.Y; y < bounds.Max.Y; y += frameHeight {
+		for x := bounds.Min.X; x < bounds.Max.X; x += frameWidth {
+			frames = append(frames, image.Rect(x, y, x+frameWidth, y+frameHeight))
+		}
+	}
+
+	is.SliceFrames(handle, frames)
 }
 
+// SliceFrames slices the main image into frames based on the specified rectangles.
 func (is *ImageStore) SliceFrames(handle resources.ResourceHandle, frames []image.Rectangle) {
-	// TODO: Implement slicing the main image into frames based on the specified rectangles.
+	img, err := is.Get(handle)
+	if err != nil {
+		return
+	}
+
+	is.ClearFrames(handle)
+
+	slicedFrames := make([]*ebiten.Image, len(frames))
+	for i, rect := range frames {
+		subImg := img.SubImage(rect).(*ebiten.Image)
+		slicedFrames[i] = subImg
+	}
+
+	is.frames[handle] = slicedFrames
 }
 
+// ClearFrames removes all sliced frames associated with the given resource handle.
 func (is *ImageStore) ClearFrames(handle resources.ResourceHandle) {
 	delete(is.frames, handle)
 }

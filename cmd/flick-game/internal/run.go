@@ -2,10 +2,10 @@ package internal
 
 import (
 	"os"
-	"path/filepath"
 
 	"github.com/adm87/flick/cmd/flick-game/internal/game"
 	"github.com/adm87/flick/content"
+	"github.com/adm87/flick/pkg/aseprite"
 	"github.com/adm87/flick/pkg/assert"
 	"github.com/adm87/flick/pkg/data"
 	"github.com/adm87/flick/pkg/ecs"
@@ -14,16 +14,38 @@ import (
 	"github.com/adm87/flick/pkg/ecs/components/transform"
 	"github.com/adm87/flick/pkg/ecs/rendering"
 	"github.com/adm87/flick/pkg/engine"
-	"github.com/adm87/flick/pkg/geom"
 	"github.com/adm87/flick/pkg/images"
 	"github.com/adm87/flick/pkg/logger"
 	"github.com/adm87/flick/pkg/resources"
+	"github.com/adm87/flick/pkg/types/geom"
+	"github.com/alexflint/go-arg"
 	"github.com/yohamta/donburi"
+
+	asepritegen "github.com/adm87/flick/generated/aseprite"
 )
 
+// TODO: Revisit for production
+type cmdArgs struct {
+	WorkingDir string `arg:"--working-dir" help:"directory to operate in"`
+}
+
 func Run() error {
+	var v cmdArgs
+	arg.MustParse(&v)
+	return run(v)
+}
+
+func run(v cmdArgs) error {
 	log := logger.NewLogger(os.Stdout)
 	res := resources.NewResources(log)
+
+	gameConfig, err := game.NewConfig(content.GameConfig)
+	assert.NoError(err)
+
+	asepriteConfig, err := aseprite.LoadConfig(content.AsepriteConfig)
+	assert.NoError(err)
+
+	_ = asepriteConfig
 
 	dataStore := data.NewDataStore()
 	dataImporter := data.NewDataImporter(dataStore)
@@ -34,18 +56,24 @@ func Run() error {
 	imageRenderer := images.NewImageRenderer(imageStore)
 	res.RegisterImporter(imageImporter, images.ImageTypes())
 
-	cfg, err := loadConfig(res, dataStore)
-	assert.NoError(err)
-
 	ecs := ecs.NewECS()
-	screen := game.NewScreen(cfg.Window.Width, cfg.Window.Height, log)
+	screen := game.NewScreen(
+		gameConfig.Window.Width,
+		gameConfig.Window.Height,
+	)
 	view := game.NewView(screen)
 	rp := rendering.NewECSRenderPipeline(ecs, view, log)
 	draw := game.NewDrawer(screen, view, ecs.World(), rp)
 	update := game.NewUpdater(ecs.World())
+	ase := aseprite.New(
+		asepriteConfig,
+		dataStore,
+		imageStore,
+		v.WorkingDir,
+	)
 
 	gameModel := &game.Model{
-		Config: cfg,
+		Config: gameConfig,
 		Renderers: &game.Renderers{
 			ImageRendererID: rp.RegisterRenderer(imageRenderer),
 		},
@@ -58,60 +86,30 @@ func Run() error {
 	}
 
 	// Temporary test scene setup
-	setupTestScene(ecs.World(), res, gameModel, view, gameAssets)
+	setupTestScene(ecs.World(), res, view, gameModel, gameAssets, ase)
 
 	return engine.Run(
 		engine.WithLogger(log),
 		engine.WithWindowSize(
-			cfg.Window.Width,
-			cfg.Window.Height,
+			gameConfig.Window.Width,
+			gameConfig.Window.Height,
 		),
-		engine.WithFullscreen(cfg.Window.Fullscreen),
+		engine.WithFullscreen(gameConfig.Window.Fullscreen),
+		engine.WithCursorMode(gameConfig.CursorMode),
 		engine.WithUpdate(update),
 		engine.WithDraw(draw),
 		engine.WithLayout(screen),
 	)
 }
 
-func loadConfig(res *resources.Resources, store *data.DataStore) (*game.Config, error) {
-	err := res.Load(content.EmbeddedFS(), content.ConfResourcePath)
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		err := res.Unload(content.ConfResourcePath)
-		assert.NoError(err)
-	}()
-
-	handle, err := res.GetHandle(content.ConfResourcePath)
-	if err != nil {
-		return nil, err
-	}
-
-	raw, err := store.Get(handle)
-	if err != nil {
-		return nil, err
-	}
-
-	return game.NewConfig(raw)
-}
-
-func setupTestScene(world donburi.World, res *resources.Resources, gameModel *game.Model, view *game.View, assets *game.Assets) {
-	const TestImage resources.ResourcePath = "tile_0105.png"
-
-	path, err := filepath.Abs("../../content")
+func setupTestScene(world donburi.World, res *resources.Resources, view *game.View, gameModel *game.Model, _ *game.Assets, ase *aseprite.Aseprite) {
+	err := res.Load(ase.ContentFS(), asepritegen.CaptainImagePath, asepritegen.CaptainJsonPath)
 	assert.NoError(err)
 
-	testFS := os.DirFS(path + "/resources")
-
-	err = res.Load(testFS, TestImage)
+	err = ase.BuildLibrary(res, asepritegen.CaptainLibrary)
 	assert.NoError(err)
 
-	handle, err := res.GetHandle(TestImage)
-	assert.NoError(err)
-
-	image, err := assets.Images.Get(handle)
+	imgHandle, err := res.GetHandle(asepritegen.CaptainImagePath)
 	assert.NoError(err)
 
 	entities := world.CreateMany(1,
@@ -125,18 +123,12 @@ func setupTestScene(world donburi.World, res *resources.Resources, gameModel *ga
 	for i := range entities {
 		entry := world.Entry(entities[i])
 
-		b, _ := transform.GetBounds(entry)
-		b.SetSize(
-			float64(image.Bounds().Dx()),
-			float64(image.Bounds().Dy()),
-		)
-
 		r, _ := renderable.GetRenderable(entry)
 		r.SetRenderer(gameModel.Renderers.ImageRendererID)
 
 		img, _ := images.GetImage(entry)
-		img.SetHandle(handle)
 		img.SetAnchor(geom.Vec2{X: 0.5, Y: 1.0})
+		img.SetHandle(imgHandle)
 	}
 
 	camEntry := world.Entry(world.Create(

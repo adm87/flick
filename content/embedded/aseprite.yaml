@@ -1,0 +1,7 @@
+resource_directory: content/resources/aseprite
+
+libraries:
+  - name: captain
+    content:
+      image: captain.png
+      json: captain.json

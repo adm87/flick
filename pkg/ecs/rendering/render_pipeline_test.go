@@ -8,8 +8,8 @@ import (
 	"github.com/adm87/flick/pkg/ecs"
 	"github.com/adm87/flick/pkg/ecs/components/renderable"
 	"github.com/adm87/flick/pkg/ecs/rendering"
-	"github.com/adm87/flick/pkg/geom"
 	"github.com/adm87/flick/pkg/logger"
+	"github.com/adm87/flick/pkg/types/geom"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/yohamta/donburi"
 )

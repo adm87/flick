@@ -4,7 +4,7 @@ import (
 	"math"
 	"testing"
 
-	"github.com/adm87/flick/pkg/structures/slotmap"
+	"github.com/adm87/flick/pkg/types/structures/slotmap"
 	"github.com/go-openapi/testify/v2/require"
 )
 

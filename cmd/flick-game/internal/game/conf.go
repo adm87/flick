@@ -1,9 +1,13 @@
 package game
 
-import "gopkg.in/yaml.v3"
+import (
+	"gopkg.in/yaml.v3"
+)
 
 type Config struct {
-	Window WindowConfig `yaml:"window"`
+	ResourceDir string       `yaml:"resource_directory"`
+	CursorMode  int          `yaml:"cursor_mode"`
+	Window      WindowConfig `yaml:"window"`
 }
 
 type WindowConfig struct {

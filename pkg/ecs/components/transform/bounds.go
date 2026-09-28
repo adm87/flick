@@ -1,7 +1,7 @@
 package transform
 
 import (
-	"github.com/adm87/flick/pkg/geom"
+	"github.com/adm87/flick/pkg/types/geom"
 	"github.com/yohamta/donburi"
 )
 

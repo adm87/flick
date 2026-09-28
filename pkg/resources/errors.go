@@ -3,7 +3,7 @@ package resources
 import (
 	"errors"
 
-	"github.com/adm87/flick/pkg/structures/slotmap"
+	"github.com/adm87/flick/pkg/types/structures/slotmap"
 )
 
 var (

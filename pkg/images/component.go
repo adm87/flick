@@ -3,8 +3,8 @@ package images
 import (
 	"image/color"
 
-	"github.com/adm87/flick/pkg/geom"
 	"github.com/adm87/flick/pkg/resources"
+	"github.com/adm87/flick/pkg/types/geom"
 	"github.com/yohamta/donburi"
 )
 

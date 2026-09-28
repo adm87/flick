@@ -21,6 +21,17 @@
             "args": [
                 "--working-dir", "${workspaceFolder}",
             ]
+		},
+		{
+			"name": "[Generate Aseprite Keys]",
+			"type": "go",
+			"request": "launch",
+			"mode": "auto",
+			"program": "${workspaceFolder}/cmd/tool/gen-aseprite-keys",
+			"args": [
+				"--output", "${workspaceFolder}/generated/aseprite",
+				"--working-dir", "${workspaceFolder}"
+			]
 		}
 	]
 }
