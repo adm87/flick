@@ -45,8 +45,6 @@ func run(v cmdArgs) error {
 	asepriteConfig, err := aseprite.LoadConfig(content.AsepriteConfig)
 	assert.NoError(err)
 
-	_ = asepriteConfig
-
 	dataStore := data.NewDataStore()
 	dataImporter := data.NewDataImporter(dataStore)
 	res.RegisterImporter(dataImporter, data.DataTypes())
@@ -102,7 +100,7 @@ func run(v cmdArgs) error {
 	)
 }
 
-func setupTestScene(world donburi.World, res *resources.Resources, view *game.View, gameModel *game.Model, _ *game.Assets, ase *aseprite.Aseprite) {
+func setupTestScene(world donburi.World, res *resources.Resources, view *game.View, gameModel *game.Model, gameAssets *game.Assets, ase *aseprite.Aseprite) {
 	err := res.Load(ase.ContentFS(), asepritegen.CaptainImagePath, asepritegen.CaptainJsonPath)
 	assert.NoError(err)
 
@@ -120,15 +118,26 @@ func setupTestScene(world donburi.World, res *resources.Resources, view *game.Vi
 		images.ImageComponent,
 	)
 
+	frame, err := gameAssets.Images.GetFrame(imgHandle, 0)
+	assert.NoError(err)
+
 	for i := range entities {
 		entry := world.Entry(entities[i])
 
 		r, _ := renderable.GetRenderable(entry)
 		r.SetRenderer(gameModel.Renderers.ImageRendererID)
 
+		ax, ay := 0.5, 1.0
+
 		img, _ := images.GetImage(entry)
-		img.SetAnchor(geom.Vec2{X: 0.5, Y: 1.0})
+		img.SetAnchor(geom.Vec2{X: ax, Y: ay})
 		img.SetHandle(imgHandle)
+
+		w, h := float64(frame.Bounds().Dx()), float64(frame.Bounds().Dy())
+
+		b, _ := transform.GetBounds(entry)
+		b.SetPosition(-w*ax, -h*ay)
+		b.SetSize(w, h)
 	}
 
 	camEntry := world.Entry(world.Create(

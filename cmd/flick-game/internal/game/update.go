@@ -45,10 +45,10 @@ func (u *Updater) Update(ctx context.Context, t engine.Time) error {
 
 		rot := tr.Rotation()
 		if ebiten.IsKeyPressed(ebiten.KeyQ) {
-			rot -= 0.05
+			rot += 0.05
 		}
 		if ebiten.IsKeyPressed(ebiten.KeyE) {
-			rot += 0.05
+			rot -= 0.05
 		}
 		tr.SetRotation(rot)
 
