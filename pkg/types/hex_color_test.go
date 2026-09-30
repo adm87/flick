@@ -18,7 +18,7 @@ type testModel struct {
 }
 
 func TestHexColorUnmarshal(t *testing.T) {
-	t.Run("JSON Unmarshal", func(t *testing.T) {
+	t.Run("Should unmarshal JSON into a HexColor correctly", func(t *testing.T) {
 		var h testModel
 		err := json.Unmarshal([]byte(hexJson), &h)
 		if err != nil {
@@ -28,7 +28,7 @@ func TestHexColorUnmarshal(t *testing.T) {
 			t.Errorf("Expected color %#v, got %#v", types.HexColor{R: 0xff, G: 0xff, B: 0xff, A: 0xff}, h.Color)
 		}
 	})
-	t.Run("YAML Unmarshal", func(t *testing.T) {
+	t.Run("Should unmarshal YAML into a HexColor correctly", func(t *testing.T) {
 		var h testModel
 		err := yaml.Unmarshal([]byte(hexYaml), &h)
 		if err != nil {

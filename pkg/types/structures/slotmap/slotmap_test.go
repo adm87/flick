@@ -84,13 +84,13 @@ func TestSlotMap(t *testing.T) {
 		require.Equal(t, 0, slotMap.Len())
 
 		_, err = slotMap.Get(k)
-		require.NoError(t, err)
+		require.ErrorIs(t, err, slotmap.ErrNotFound)
 
 		err = slotMap.Set(k, 100)
-		require.NoError(t, err)
+		require.ErrorIs(t, err, slotmap.ErrNotFound)
 
 		_, err = slotMap.Delete(k)
-		require.NoError(t, err)
+		require.ErrorIs(t, err, slotmap.ErrNotFound)
 	})
 
 	t.Run("Should return false for invalid keys", func(t *testing.T) {
@@ -99,15 +99,12 @@ func TestSlotMap(t *testing.T) {
 		k := slotmap.K{}
 
 		_, err := slotMap.Get(k)
-		require.Error(t, err)
 		require.ErrorIs(t, err, slotmap.ErrInvalidKey)
 
 		err = slotMap.Set(k, 1)
-		require.Error(t, err)
 		require.ErrorIs(t, err, slotmap.ErrInvalidKey)
 
 		_, err = slotMap.Delete(k)
-		require.Error(t, err)
 		require.ErrorIs(t, err, slotmap.ErrInvalidKey)
 	})
 
